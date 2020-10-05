@@ -1,16 +1,21 @@
 import numpy as np
 cimport numpy as np
 cimport cython
+from libcpp cimport bool
 from scipy.optimize import linear_sum_assignment
 import rcovdata
 
+
 # import numba
 
+
 # @numba.jit()
-def get_gom(int lseg, rxyz, rcov, amp):
+def get_gom(int lseg, float[:] rxyz, float[:] rcov, float[:] amp):
     # s orbital only lseg == 1
     cdef int nat
     cdef int iat, jat
+    cdef float d, d2, r, stv, sji
+    cdef float[:,:] om
     nat = len(rxyz)    
     if lseg == 1:
         om = np.zeros((nat, nat))
@@ -65,7 +70,10 @@ def get_gom(int lseg, rxyz, rcov, amp):
 
 
 # @numba.jit()
-def get_fp_nonperiodic(rxyz, znucls):
+def get_fp_nonperiodic(float[:] rxyz, int[:] znucls):
+    cdef float[:] rcov, amp
+    cdef int x
+    cdef float[:,:] gom, fp
     rcov = []
     amp = [1.0] * len(rxyz)
     for x in znucls:
@@ -77,14 +85,19 @@ def get_fp_nonperiodic(rxyz, znucls):
     return fp
 
 # @numba.jit()
-def get_fpdist_nonperiodic(fp1, fp2):
+def get_fpdist_nonperiodic(float[:,:] fp1, float[:,:] fp2):
+    float[:,:] d
     d = fp1 - fp2
     return np.sqrt(np.vdot(d, d))
 
 # @numba.jit()
-def get_fp(contract, int ntyp, int nx, int lmax, lat, rxyz, types, znucl, cutoff):
-    cdef int lseg
-    cdef int iat, jat, ix, iy, il
+def get_fp(bool contract, int ntyp, int nx, int lmax, float[:,:] lat, float[:,:] rxyz, int[:] types, int[:] znucl, float cutoff):
+    cdef int lseg, iat, jat, nat, ix, iy, iz, il, ixyz, l, NC, ityp_sphere, n_sphere
+    cdef int[:] ind, n_sphere_list
+    cdef float wc, fc, cutoff2, xi, yi, zi
+    cdef float[:] amp, rcov, lfp, fp0, sfp, sfp0, rxyz_sphere, rcov_sphere, val
+    cdef int nid, nids, i
+    cdef float[:,:] vec, pvec, gom, omx
     if lmax == 0:
         lseg = 1
         l = 1
@@ -139,6 +152,9 @@ def get_fp(contract, int ntyp, int nx, int lmax, lat, rxyz, types, znucl, cutoff
         n_sphere_list.append(n_sphere)
         rxyz_sphere = np.array(rxyz_sphere, float)
         # full overlap matrix
+        # cdef int nid, nids, i
+        # cdef float *val, *fp0, *lfp, *sfp0, *sfp
+        # cdef float **vec, **pvec, **gom, **omx
         nid = lseg * n_sphere
         gom = get_gom(lseg, rxyz_sphere, rcov_sphere, amp)
         val, vec = np.linalg.eig(gom)
@@ -176,7 +192,10 @@ def get_fp(contract, int ntyp, int nx, int lmax, lat, rxyz, types, znucl, cutoff
         return lfp
 
 # @numba.jit()
-def get_ixyz(lat, cutoff):
+def get_ixyz(float[:,:] lat, float cutoff):
+    cdef int ixyz
+    cdef float[:] vec
+    cdef float[:,:] lat2
     lat2 = np.matmul(lat, np.transpose(lat))
     # print lat2
     vec = np.linalg.eigvals(lat2)
@@ -185,8 +204,11 @@ def get_ixyz(lat, cutoff):
     return ixyz
 
 # @numba.jit()
-def get_fpdist(int ntyp, types, fp1, fp2):
-    cdef iat, jat
+def get_fpdist(int ntyp, int[:] types, float[:] fp1, float[:] fp2):
+    cdef int iat, jat, nat, lenfp, ityp, itype
+    cdef float total, fpd
+    cdef float[:] tfpd, row_ind, col_ind
+    cdef float[:,:] MX
     nat, lenfp = np.shape(fp1)
     fpd = 0.0
     for ityp in range(ntyp):
@@ -206,5 +228,4 @@ def get_fpdist(int ntyp, types, fp1, fp2):
 
     fpd = fpd / nat
     return fpd
-
 
