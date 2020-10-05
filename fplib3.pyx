@@ -10,18 +10,21 @@ import rcovdata
 
 
 # @numba.jit()
-def get_gom(int lseg, float[:] rxyz, float[:] rcov, float[:] amp):
+def get_gom(int lseg, float[:,:] rxyz, float[:] rcov, float[:] amp):
     # s orbital only lseg == 1
     cdef int nat
-    cdef int iat, jat
-    cdef float d, d2, r, stv, sji
-    cdef float[:,:] om
+    cdef int iat, jat, i
+    cdef double d2, r, stv, sji
+    cdef double[:] d
+    cdef double[:,:] om
     nat = len(rxyz)    
     if lseg == 1:
         om = np.zeros((nat, nat))
         for iat in range(nat):
             for jat in range(nat):
-                d = rxyz[iat] - rxyz[jat]
+                for i in range(3):
+                    d[i] = rxyz[iat][i] - rxyz[jat][i]
+                # d = rxyz[iat] - rxyz[jat]
                 d2 = np.vdot(d, d)
                 r = 0.5/(rcov[iat]**2 + rcov[jat]**2)
                 om[iat][jat] = np.sqrt( 4.0*r*(rcov[iat]*rcov[jat]) )**3 \
@@ -31,7 +34,9 @@ def get_gom(int lseg, float[:] rxyz, float[:] rcov, float[:] amp):
         om = np.zeros((4*nat, 4*nat))
         for iat in range(nat):
             for jat in range(nat):
-                d = rxyz[iat] - rxyz[jat]
+                for i in range(3):
+                    d[i] = rxyz[iat][i] - rxyz[jat][i]
+                # d = rxyz[iat] - rxyz[jat]
                 d2 = np.vdot(d, d)
                 r = 0.5/(rcov[iat]**2 + rcov[jat]**2)
                 om[4*iat][4*jat] = np.sqrt( 4.0*r*(rcov[iat]*rcov[jat]) )**3 \
@@ -71,11 +76,14 @@ def get_gom(int lseg, float[:] rxyz, float[:] rcov, float[:] amp):
 
 # @numba.jit()
 def get_fp_nonperiodic(float[:] rxyz, int[:] znucls):
-    cdef float[:] rcov, amp
-    cdef int x
-    cdef float[:,:] gom, fp
-    rcov = []
-    amp = [1.0] * len(rxyz)
+    cdef double[:] rcov, amp, fp
+    cdef int x, i, l
+    cdef double[:,:] gom
+    cdef double[:] amp
+    l = rxyz.shape[0]
+    # amp = [1.0] * len(rxyz)
+    for i in range(l):
+        rxyz[i] = 1.0
     for x in znucls:
         rcov.append(rcovdata.rcovdata[x][2])
     gom = get_gom(1, rxyz, rcov, amp)
@@ -85,19 +93,23 @@ def get_fp_nonperiodic(float[:] rxyz, int[:] znucls):
     return fp
 
 # @numba.jit()
-def get_fpdist_nonperiodic(float[:,:] fp1, float[:,:] fp2):
-    float[:,:] d
-    d = fp1 - fp2
+def get_fpdist_nonperiodic(float[:] fp1, float[:] fp2):
+    cdef double[:] d
+    cdef int i, n
+    # d = fp1 - fp2
+    n = fp1.shape[0]
+    for i in range(n):
+        d[i] = fp1[i] - fp2[i]
     return np.sqrt(np.vdot(d, d))
 
 # @numba.jit()
 def get_fp(bool contract, int ntyp, int nx, int lmax, float[:,:] lat, float[:,:] rxyz, int[:] types, int[:] znucl, float cutoff):
     cdef int lseg, iat, jat, nat, ix, iy, iz, il, ixyz, l, NC, ityp_sphere, n_sphere
     cdef int[:] ind, n_sphere_list
-    cdef float wc, fc, cutoff2, xi, yi, zi
-    cdef float[:] amp, rcov, lfp, fp0, sfp, sfp0, rxyz_sphere, rcov_sphere, val
+    cdef double wc, fc, cutoff2, xi, yi, zi
+    cdef double[:] amp, rcov, lfp, fp0, sfp, sfp0, rxyz_sphere, rcov_sphere, val
     cdef int nid, nids, i
-    cdef float[:,:] vec, pvec, gom, omx
+    cdef double[:,:] vec, pvec, gom, omx
     if lmax == 0:
         lseg = 1
         l = 1
@@ -111,9 +123,9 @@ def get_fp(bool contract, int ntyp, int nx, int lmax, float[:,:] lat, float[:,:]
     nat = len(rxyz)
     cutoff2 = cutoff**2 
     
-    n_sphere_list = []
-    lfp = []
-    sfp = []
+    # n_sphere_list = [] 
+    # lfp = []
+    # sfp = []
     for iat in range(nat):
         rxyz_sphere = []
         rcov_sphere = []
@@ -194,8 +206,8 @@ def get_fp(bool contract, int ntyp, int nx, int lmax, float[:,:] lat, float[:,:]
 # @numba.jit()
 def get_ixyz(float[:,:] lat, float cutoff):
     cdef int ixyz
-    cdef float[:] vec
-    cdef float[:,:] lat2
+    cdef double[:] vec
+    cdef double[:,:] lat2
     lat2 = np.matmul(lat, np.transpose(lat))
     # print lat2
     vec = np.linalg.eigvals(lat2)
@@ -206,9 +218,9 @@ def get_ixyz(float[:,:] lat, float cutoff):
 # @numba.jit()
 def get_fpdist(int ntyp, int[:] types, float[:] fp1, float[:] fp2):
     cdef int iat, jat, nat, lenfp, ityp, itype
-    cdef float total, fpd
-    cdef float[:] tfpd, row_ind, col_ind
-    cdef float[:,:] MX
+    cdef double total, fpd
+    cdef double[:] tfpd, row_ind, col_ind
+    cdef double[:,:] MX
     nat, lenfp = np.shape(fp1)
     fpd = 0.0
     for ityp in range(ntyp):
