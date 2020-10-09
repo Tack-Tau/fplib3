@@ -2,20 +2,32 @@ import numpy as np
 cimport numpy as np
 cimport cython
 from libcpp cimport bool
+# from cpython cimport array
+# from cython.view cimport array as cvarray
 from scipy.optimize import linear_sum_assignment
 import rcovdata
 
 
 # import numba
 
+# cdef some python arrays
+# cdef array.array int_array_1D = array.array('i', [:])
+# cdef array.array int_array_2D = array.array('i', [:,:])
+# cdef array.array int_array_3D = array.array('i', [:,:,:])
+# cdef array.array float_array_1D = array.array('f', [:])
+# cdef array.array float_array_2D = array.array('f', [:,:])
+# cdef array.array float_array_3D = array.array('f', [:,:,:])
 
 # @numba.jit()
+cdef double[:] d, rcov, amp, lfp, sfp, tfpd
+cdef int[:] n_sphere_list
+
 def get_gom(int lseg, float[:,:] rxyz, float[:] rcov, float[:] amp):
     # s orbital only lseg == 1
+    global d, amp
     cdef int nat
     cdef int iat, jat, i
     cdef double d2, r, stv, sji
-    cdef double[:] d
     cdef double[:,:] om
     nat = len(rxyz)    
     if lseg == 1:
@@ -76,10 +88,10 @@ def get_gom(int lseg, float[:,:] rxyz, float[:] rcov, float[:] amp):
 
 # @numba.jit()
 def get_fp_nonperiodic(float[:] rxyz, int[:] znucls):
-    cdef double[:] rcov, amp, fp
+    global rcov, amp
+    cdef double[:] fp
     cdef int x, i, l
     cdef double[:,:] gom
-    cdef double[:] amp
     l = rxyz.shape[0]
     # amp = [1.0] * len(rxyz)
     for i in range(l):
@@ -94,7 +106,7 @@ def get_fp_nonperiodic(float[:] rxyz, int[:] znucls):
 
 # @numba.jit()
 def get_fpdist_nonperiodic(float[:] fp1, float[:] fp2):
-    cdef double[:] d
+    global d
     cdef int i, n
     # d = fp1 - fp2
     n = fp1.shape[0]
@@ -104,12 +116,14 @@ def get_fpdist_nonperiodic(float[:] fp1, float[:] fp2):
 
 # @numba.jit()
 def get_fp(bool contract, int ntyp, int nx, int lmax, float[:,:] lat, float[:,:] rxyz, int[:] types, int[:] znucl, float cutoff):
+    global d, rcov, lfp, sfp, n_sphere_list
     cdef int lseg, iat, jat, nat, ix, iy, iz, il, ixyz, l, NC, ityp_sphere, n_sphere
-    cdef int[:] ind, n_sphere_list
+    cdef int[:] ind
     cdef double wc, fc, cutoff2, xi, yi, zi
-    cdef double[:] amp, rcov, lfp, fp0, sfp, sfp0, rxyz_sphere, rcov_sphere, val
-    cdef int nid, nids, i
-    cdef double[:,:] vec, pvec, gom, omx
+    cdef double[:] fp0, sfp0, rxyz_sphere, rcov_sphere, val
+    cdef int nid, nids, i, j, k
+    cdef double[:] vec, pvec
+    cdef double[:,:] gom, omx
     if lmax == 0:
         lseg = 1
         l = 1
@@ -127,10 +141,14 @@ def get_fp(bool contract, int ntyp, int nx, int lmax, float[:,:] lat, float[:,:]
     # lfp = []
     # sfp = []
     for iat in range(nat):
-        rxyz_sphere = []
-        rcov_sphere = []
-        ind = [0] * (lseg * nx)
-        amp = []
+        # cdef np.array[double, dim=1] x_array = np.zeros((some_precomputed_size,))
+        rxyz_sphere = np.zeros_like(np.size(rxyz_sphere))  # []
+        rcov_sphere = np.zeros_like(np.size(rcov_sphere))  # []
+        amp = np.zeros_like(np.size(amp))  # []
+        ind = np.zeros_like(np.size(ind))  # []
+        # ind = [0] * (lseg * nx)
+        for i in range(0, len(ind)):
+            ind[i] = lseg * nx
         xi, yi, zi = rxyz[iat]
         n_sphere = 0
         for jat in range(nat):
@@ -217,9 +235,10 @@ def get_ixyz(float[:,:] lat, float cutoff):
 
 # @numba.jit()
 def get_fpdist(int ntyp, int[:] types, float[:] fp1, float[:] fp2):
-    cdef int iat, jat, nat, lenfp, ityp, itype
+    global tfpd
+    cdef int iat, jat, nat, lenfp, ityp, itype, i, j, k, row_ind, col_ind
     cdef double total, fpd
-    cdef double[:] tfpd, row_ind, col_ind
+    # cdef double[:] tfpd, row_ind, col_ind
     cdef double[:,:] MX
     nat, lenfp = np.shape(fp1)
     fpd = 0.0
@@ -230,9 +249,11 @@ def get_fpdist(int ntyp, int[:] types, float[:] fp1, float[:] fp2):
             if types[iat] == itype:
                 for jat in range(nat):
                     if types[jat] == itype:
-                        tfpd = fp1[iat] - fp2[jat]
+                        # tfpd = fp1[iat] - fp2[jat]
+                        # MX[iat][jat] = np.sqrt(np.vdot(tfpd, tfpd)/lenfp)
+                        for i in range(0, len(fp1)):
+                            tfpd[i] = fp1[iat] - fp2[jat]
                         MX[iat][jat] = np.sqrt(np.vdot(tfpd, tfpd)/lenfp)
-
         row_ind, col_ind = linear_sum_assignment(MX)
         # print(row_ind, col_ind)
         total = MX[row_ind, col_ind].sum()
@@ -240,3 +261,5 @@ def get_fpdist(int ntyp, int[:] types, float[:] fp1, float[:] fp2):
 
     fpd = fpd / nat
     return fpd
+
+
