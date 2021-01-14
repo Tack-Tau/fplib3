@@ -36,10 +36,10 @@ def test(v1, v2):
     lat1, rxyz1, types = readvasp(v1)
     lat2, rxyz2, types = readvasp(v2)
     contract = False
-    fp1 = fplib2.get_fp(contract, ntyp, natx, lmax, lat1, rxyz1, types, znucl, cutoff)
-    fp2 = fplib2.get_fp(contract, ntyp, natx, lmax, lat2, rxyz2, types, znucl, cutoff)
+    fp1 = fplib3.get_fp(contract, ntyp, natx, lmax, lat1, rxyz1, types, znucl, cutoff)
+    fp2 = fplib3.get_fp(contract, ntyp, natx, lmax, lat2, rxyz2, types, znucl, cutoff)
 
-    dist = fplib2.get_fpdist(ntyp, types, fp1, fp2)
+    dist = fplib3.get_fpdist(ntyp, types, fp1, fp2)
     print ('fingerprint distance: ', dist)
 
 
