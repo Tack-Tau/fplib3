@@ -7,3 +7,9 @@ __pycache__
 *.f90
 *.ascii
 POSCAR
+POTCAR
+INCAR
+KPOINTS
+OUTCAR
+WAVECAR
+slurm-*
