@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import fplib_GD
+import writekp
 import ase.io
 from ase import units
 # from ase.calculators.calculator import Calculator
@@ -12,12 +13,37 @@ from ase.constraints import StrainFilter, UnitCellFilter
 from ase.io.trajectory import Trajectory
 
 from fp_GD_api4ase import fp_GD_Calculator
+from ase.calculators.vasp import Vasp
+from ase.calculators.mixing import MixedCalculator
 
-atoms = ase.io.read('.'+'/'+'Li1.vasp')
+atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
 trajfile = 'opt.traj'
 
-calc = fp_GD_Calculator()
+kpoints = writekp.writekp(kgrid=0.04)
+calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp_std', 
+              xc = 'PBE', 
+              setups = 'recommended', 
+              txt = 'vasp.out',
+              prec = 'Accurate',
+              ediff = 1E-5,
+              ediffg = -1E-3,
+              encut = 520.0,
+              ibrion = 2,
+              isif = 2,
+              nsw = 1,
+              ismear = 0,
+              sigma = 0.05,
+              potim = 0.2,
+              lwave = FALSE,
+              lcharge = FALSE,
+              lplane = FALSE,
+              isym = 0,
+              npar = 4,
+              kpts = kpoints,
+              )
+calc2 = fp_GD_Calculator()
+calc = MixedCalculator(calc1, calc2, 0.5, 0.5)
 # atoms.set_calculator(calc)
 atoms.calc = calc
 

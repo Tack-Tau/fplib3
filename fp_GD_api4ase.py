@@ -4,7 +4,7 @@ import sys
 import numpy as np
 
 import f90test
-import fplib2
+import fplib3
 # import fplib_GD.readvasp as readvasp
 import ase.io
 # import ase.units as units
@@ -56,8 +56,8 @@ class fp_GD_Calculator(object):
         # energy = fplib_GD.get_fp_energy(lat, rxyz, types, contract = False, ntyp = 1, nx = 300, \
         #                                 lmax = 0, znucl = np.array([3], int), cutoff = 4.5)
         znucl = np.array([3], int)
-        fp, dfp = fplib2.get_fp(False, 1, 100, 0, lat, rxyz, types, znucl, 6.0)
-        e,f = fplib2.get_ef(fp, dfp)
+        fp, dfp = fplib3.get_fp(False, 1, 100, 0, lat, rxyz, types, znucl, 6.0)
+        e,f = fplib3.get_ef(fp, dfp)
         energy = e
         return energy
 
@@ -72,8 +72,8 @@ class fp_GD_Calculator(object):
         #                                 lmax = 0, znucl = np.array([3], int), cutoff = 4.5, \
         #                                 iter_max = 1, step_size = 1e-4) 
         znucl = np.array([3], int)
-        fp, dfp = fplib2.get_fp(False, 1, 100, 0, lat, rxyz, types, znucl, 6.0)
-        e,f = fplib2.get_ef(fp, dfp)
+        fp, dfp = fplib3.get_fp(False, 1, 100, 0, lat, rxyz, types, znucl, 6.0)
+        e,f = fplib3.get_ef(fp, dfp)
         forces = f
         return forces
 
