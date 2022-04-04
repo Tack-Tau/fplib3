@@ -2,3 +2,8 @@
 .ipynb_checkpoints
 __pycache__
 *.pyc
+*.traj
+*.vasp
+*.f90
+*.ascii
+POSCAR
