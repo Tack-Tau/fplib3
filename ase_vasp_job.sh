@@ -14,7 +14,5 @@ export OMP_NUM_THREADS=1
 export VASP_SCRIPT="$PWD/ase_test.py"
 export VASP_PP_PATH="/home/lz432/apps/PBE54/"
 
-conda activate ase
-
 cp Li1.vasp POSCAR
 python3 ase_test.py
