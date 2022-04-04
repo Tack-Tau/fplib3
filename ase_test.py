@@ -35,15 +35,15 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               ismear = 0,
               sigma = 0.05,
               potim = 0.2,
-              lwave = FALSE,
-              lcharge = FALSE,
-              lplane = FALSE,
+              lwave = False,
+              lcharge = False,
+              lplane = False,
               isym = 0,
               npar = 4,
               kpts = kpoints,
               )
 calc2 = fp_GD_Calculator()
-calc = MixedCalculator(calc1, calc2, 0.5, 0.5)
+calc = MixedCalculator(calc1, calc2, 0.01, 1)
 # atoms.set_calculator(calc)
 atoms.calc = calc
 
