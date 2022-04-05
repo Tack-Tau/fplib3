@@ -12,8 +12,8 @@ from ase.atoms import Atoms
 from ase.cell import Cell
 # from ase.calculators.genericfileio import (CalculatorTemplate,
 #                                            GenericFileIOCalculator)
-from ase.calculators.calculator import BaseCalculator
-# from ase.calculators.calculator import Calculator, FileIOCalculator
+# from ase.calculators.calculator import BaseCalculator, FileIOCalculator
+from ase.calculators.calculator import Calculator
 
 
 class fp_GD_Calculator(BaseCalculator):
@@ -51,8 +51,8 @@ class fp_GD_Calculator(BaseCalculator):
             rxyz = atoms.get_positions()
             types = fplib_GD.read_types('Li-mp-51.vasp')
             
-        # # energy = self.results["energypotential"]["TOTAL"].energy * ENERGY_CONV["Hartree"]["eV"]
-        # # energy = self.results["density"].grid.mp.asum(energy)
+        # energy = self.results["energypotential"]["TOTAL"].energy * ENERGY_CONV["Hartree"]["eV"]
+        # energy = self.results["density"].grid.mp.asum(energy)
         # energy = fplib_GD.get_fp_energy(lat, rxyz, types, contract = False, ntyp = 1, nx = 300, \
         #                                 lmax = 0, znucl = np.array([3], int), cutoff = 4.5)
         znucl = np.array([3], int)

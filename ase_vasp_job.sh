@@ -11,7 +11,6 @@ module load intel/17.0.4 python/3.8.5-gc563
 ulimit -s unlimited
 ulimit -s
 export OMP_NUM_THREADS=1
-export VASP_SCRIPT="$PWD/ase_test.py"
 export VASP_PP_PATH="/home/lz432/apps/PBE54/"
 
 cp Li1.vasp POSCAR
