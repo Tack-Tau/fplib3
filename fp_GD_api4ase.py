@@ -1,7 +1,11 @@
-import fplib_GD
-import rcovdata
+import os
 import sys
 import numpy as np
+import fplib_GD
+import f90test
+import fplib3
+# import fplib_GD.readvasp as readvasp
+import rcovdata
 
 from contextlib import contextmanager
 from pathlib import Path
@@ -9,11 +13,11 @@ from warnings import warn
 from typing import Dict, Any
 from xml.etree import ElementTree
 
-
-import f90test
-import fplib3
-# import fplib_GD.readvasp as readvasp
-import ase.io
+# import ase
+from ase.io import read, write
+#from ase.utils import PurePath
+from ase.calculators import calculator
+from ase.calculators.calculator import Calculator
 # import ase.units as units
 from ase.atoms import Atoms
 from ase.cell import Cell
@@ -23,6 +27,7 @@ from ase.calculators.vasp.create_input import GenerateVaspInput
 from ase.calculators.singlepoint import SinglePointDFTCalculator
 
 # Ref: https://gitlab.com/ase/ase/-/blob/master/ase/calculators/calculator.py
+#      https://gitlab.com/ase/ase/-/blob/master/ase/calculators/vasp/vasp.py
 class fp_GD_Calculator(Calculator):
     """ASE interface for fp_GD, with the Calculator interface.
 
@@ -127,6 +132,69 @@ class fp_GD_Calculator(Calculator):
     def clear_results(self):
         self.results.clear()
 
+    def calculate(self,
+                  atoms=None,
+                  properties=('energy', ),
+                  system_changes=tuple(calculator.all_changes)):
+        """Do a VASP calculation in the specified directory.
+
+        This will generate the necessary VASP input files, and then
+        execute VASP. After execution, the energy, forces. etc. are read
+        from the VASP output files.
+        """
+        # Check for zero-length lattice vectors and PBC
+        # and that we actually have an Atoms object.
+        check_atoms(atoms)
+
+        self.clear_results()
+
+        if atoms is not None:
+            self.atoms = atoms.copy()
+
+        command = self.make_command(self.command)
+        self.write_input(self.atoms, properties, system_changes)
+
+        with self._txt_outstream() as out:
+            errorcode = self._run(command=command,
+                                  out=out,
+                                  directory=self.directory)
+
+        if errorcode:
+            raise calculator.CalculationFailed(
+                '{} in {} returned an error: {:d}'.format(
+                    self.name, self.directory, errorcode))
+
+        # Read results from calculation
+        self.update_atoms(atoms)
+        self.read_results()
+
+    def check_state(self, atoms, tol=1e-15):
+        """Check for system changes since last calculation."""
+        def compare_dict(d1, d2):
+            """Helper function to compare dictionaries"""
+            # Use symmetric difference to find keys which aren't shared
+            # for python 2.7 compatibility
+            if set(d1.keys()) ^ set(d2.keys()):
+                return False
+
+            # Check for differences in values
+            for key, value in d1.items():
+                if np.any(value != d2[key]):
+                    return False
+            return True
+
+        # First we check for default changes
+        system_changes = Calculator.check_state(self, atoms, tol=tol)
+
+        # We now check if we have made any changes to the input parameters
+        # XXX: Should we add these parameters to all_changes?
+        for param_string, old_dict in self.param_state.items():
+            param_dict = getattr(self, param_string)  # Get current param dict
+            if not compare_dict(param_dict, old_dict):
+                system_changes.append(param_string)
+
+        return system_changes
+
     def _store_param_state(self):
         """Store current parameter state"""
         self.param_state = dict(
@@ -141,7 +209,6 @@ class fp_GD_Calculator(Calculator):
             list_float_params=self.list_float_params.copy(),
             dict_params=self.dict_params.copy(),
             special_params=self.special_params.copy())
-
 
     def read(self, label=None):
         """Read results from VASP output files.
