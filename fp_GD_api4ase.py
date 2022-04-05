@@ -19,6 +19,7 @@ from ase.atoms import Atoms
 from ase.cell import Cell
 # from ase.calculators.calculator import BaseCalculator, FileIOCalculator
 from ase.calculators.calculator import Calculator
+from ase.calculators.vasp.create_input import GenerateVaspInput
 from ase.calculators.singlepoint import SinglePointDFTCalculator
 
 # Ref: https://gitlab.com/ase/ase/-/blob/master/ase/calculators/calculator.py
@@ -61,6 +62,14 @@ class fp_GD_Calculator(Calculator):
 
         self._atoms = None
         self.results = {}
+        # Initialize parameter dictionaries
+        GenerateVaspInput.__init__(self)
+        self._store_param_state()  # Initialize an empty parameter state
+
+        # Store calculator from vasprun.xml here - None => uninitialized
+        self._xml_calc = None
+
+        # Set directory and label
         self.directory = directory
         
         if '/' in label:
@@ -117,6 +126,22 @@ class fp_GD_Calculator(Calculator):
 
     def clear_results(self):
         self.results.clear()
+
+    def _store_param_state(self):
+        """Store current parameter state"""
+        self.param_state = dict(
+            float_params=self.float_params.copy(),
+            exp_params=self.exp_params.copy(),
+            string_params=self.string_params.copy(),
+            int_params=self.int_params.copy(),
+            input_params=self.input_params.copy(),
+            bool_params=self.bool_params.copy(),
+            list_int_params=self.list_int_params.copy(),
+            list_bool_params=self.list_bool_params.copy(),
+            list_float_params=self.list_float_params.copy(),
+            dict_params=self.dict_params.copy(),
+            special_params=self.special_params.copy())
+
 
     def read(self, label=None):
         """Read results from VASP output files.
@@ -191,6 +216,24 @@ class fp_GD_Calculator(Calculator):
         # Prevent calculation from going into a loop
         if 'stress' not in self.results:
             self.results.update(dict(stress=None))
+
+        self._set_old_keywords()
+
+        # Store the parameters used for this calculation
+        self._store_param_state()
+
+    def _set_old_keywords(self):
+        """Store keywords for backwards compatibility wd VASP calculator"""
+        self.spinpol = self.get_spin_polarized()
+        self.energy_free = self.get_potential_energy(force_consistent=True)
+        self.energy_zero = self.get_potential_energy(force_consistent=False)
+        self.forces = self.get_forces()
+        self.fermi = self.get_fermi_level()
+        self.dipole = self.get_dipole_moment()
+        # Prevent calculation from going into a loop
+        self.stress = self.get_property('stress', allow_calculation=False)
+        self.nbands = self.get_number_of_bands()
+
 
     def load_file(self, filename):
         """Reads a file in the directory, and returns the lines
