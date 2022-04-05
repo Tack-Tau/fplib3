@@ -232,7 +232,7 @@ class fp_GD_Calculator(Calculator):
                     'VASP outputfile {} was not found'.format(file))
 
         # Build sorting and resorting lists
-        # self.read_sort()
+        self.read_sort()
 
         # Read atoms
         self.atoms = self.read_atoms(filename=self._indir('CONTCAR'))
