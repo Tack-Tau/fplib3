@@ -254,6 +254,7 @@ class fp_GD_Calculator(Calculator):
         If the ase-sort.dat file does not exist, the sorting is redone.
         """
         sortfile = self._indir('ase-sort.dat')
+        print(os.path.isfile(sortfile))
         if os.path.isfile(sortfile):
             self.sort = []
             self.resort = []
