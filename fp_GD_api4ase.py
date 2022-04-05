@@ -16,7 +16,7 @@ from ase.cell import Cell
 from ase.calculators.calculator import Calculator
 
 
-class fp_GD_Calculator(BaseCalculator):
+class fp_GD_Calculator(Calculator):
     """Fingerprint calculator for ase"""
     
     def __init__(self, parameters=None, atoms=None, **kwargs):
