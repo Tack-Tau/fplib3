@@ -13,7 +13,7 @@ from warnings import warn
 from typing import Dict, Any
 from xml.etree import ElementTree
 
-# import ase
+import ase
 from ase.io import read, write
 #from ase.utils import PurePath
 from ase.calculators import calculator
@@ -474,3 +474,50 @@ class fp_GD_Calculator(Calculator):
                                         iter_max = 1, step_size = 1e-4)
         return stress
      
+#####################################
+# Below defines helper functions
+# for the VASP calculator
+#####################################
+
+
+def check_atoms(atoms: ase.Atoms) -> None:
+    """Perform checks on the atoms object, to verify that
+    it can be run by VASP.
+    A CalculatorSetupError error is raised if the atoms are not supported.
+    """
+
+    # Loop through all check functions
+    for check in (check_atoms_type, check_cell, check_pbc):
+        check(atoms)
+
+
+def check_cell(atoms: ase.Atoms) -> None:
+    """Check if there is a zero unit cell.
+    Raises CalculatorSetupError if the cell is wrong.
+    """
+    if atoms.cell.rank < 3:
+        raise calculator.CalculatorSetupError(
+            "The lattice vectors are zero! "
+            "This is the default value - please specify a "
+            "unit cell.")
+
+
+def check_pbc(atoms: ase.Atoms) -> None:
+    """Check if any boundaries are not PBC, as VASP
+    cannot handle non-PBC.
+    Raises CalculatorSetupError.
+    """
+    if not atoms.pbc.all():
+        raise calculator.CalculatorSetupError(
+            "Vasp cannot handle non-periodic boundaries. "
+            "Please enable all PBC, e.g. atoms.pbc=True")
+
+
+def check_atoms_type(atoms: ase.Atoms) -> None:
+    """Check that the passed atoms object is in fact an Atoms object.
+    Raises CalculatorSetupError.
+    """
+    if not isinstance(atoms, ase.Atoms):
+        raise calculator.CalculatorSetupError(
+            ('Expected an Atoms object, '
+             'instead got object of type {}'.format(type(atoms))))
