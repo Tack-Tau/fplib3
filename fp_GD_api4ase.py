@@ -247,7 +247,7 @@ class fp_GD_Calculator(Calculator):
 
     def _indir(self, filename):
         """Prepend current directory to filename"""
-        return Path(self.directory) / filename
+        return Path(self.directory).as_posix()+'/'+filename
 
     def read_sort(self):
         """Create the sorting and resorting list from ase-sort.dat.
