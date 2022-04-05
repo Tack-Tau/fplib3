@@ -249,6 +249,25 @@ class fp_GD_Calculator(Calculator):
         """Prepend current directory to filename"""
         return Path(self.directory) / filename
 
+    def read_sort(self):
+        """Create the sorting and resorting list from ase-sort.dat.
+        If the ase-sort.dat file does not exist, the sorting is redone.
+        """
+        sortfile = self._indir('ase-sort.dat')
+        if os.path.isfile(sortfile):
+            self.sort = []
+            self.resort = []
+            with open(sortfile, 'r') as fd:
+                for line in fd:
+                    sort, resort = line.split()
+                    self.sort.append(int(sort))
+                    self.resort.append(int(resort))
+        else:
+            # Redo the sorting
+            atoms = read(self._indir('CONTCAR'))
+            self.initialize(atoms)
+
+
     def read_atoms(self, filename):
         """Read the atoms from file located in the VASP
         working directory. Normally called CONTCAR."""
