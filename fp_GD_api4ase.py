@@ -150,7 +150,8 @@ class fp_GD_Calculator(Calculator):
 
         if atoms is not None:
             self.atoms = atoms.copy()
-
+        
+        '''
         command = self.make_command(self.command)
         self.write_input(self.atoms, properties, system_changes)
 
@@ -163,7 +164,8 @@ class fp_GD_Calculator(Calculator):
             raise calculator.CalculationFailed(
                 '{} in {} returned an error: {:d}'.format(
                     self.name, self.directory, errorcode))
-
+        '''
+        
         # Read results from calculation
         self.update_atoms(atoms)
         self.read_results()
