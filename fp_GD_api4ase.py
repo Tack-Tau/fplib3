@@ -13,10 +13,10 @@ from ase.cell import Cell
 # from ase.calculators.genericfileio import (CalculatorTemplate,
 #                                            GenericFileIOCalculator)
 # from ase.calculators.calculator import BaseCalculator, FileIOCalculator
-from ase.calculators.calculator import Calculator
+# from ase.calculators.calculator import Calculator
 
 
-class fp_GD_Calculator(Calculator):
+class fp_GD_Calculator(object):
     """Fingerprint calculator for ase"""
     
     def __init__(self, parameters=None, atoms=None, **kwargs):
