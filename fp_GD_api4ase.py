@@ -13,7 +13,7 @@ from warnings import warn
 from typing import Dict, Any
 from xml.etree import ElementTree
 
-import ase
+# import ase
 from ase.io import read, write
 #from ase.utils import PurePath
 from ase.calculators import calculator
@@ -21,14 +21,17 @@ from ase.calculators.calculator import Calculator
 # import ase.units as units
 from ase.atoms import Atoms
 from ase.cell import Cell
-# from ase.calculators.calculator import BaseCalculator, FileIOCalculator
-from ase.calculators.calculator import Calculator
+# from ase.calculators.calculator import BaseCalculator, Calculator
+from ase.calculators.calculator import FileIOCalculator
 from ase.calculators.vasp.create_input import GenerateVaspInput
 from ase.calculators.singlepoint import SinglePointDFTCalculator
 
-# Ref: https://gitlab.com/ase/ase/-/blob/master/ase/calculators/calculator.py
-#      https://gitlab.com/ase/ase/-/blob/master/ase/calculators/vasp/vasp.py
-class fp_GD_Calculator(GenerateVaspInput, Calculator):
+################################ ASE Reference ####################################
+#      https://gitlab.com/ase/ase/-/blob/master/ase/calculators/calculator.py     #
+#      https://gitlab.com/ase/ase/-/blob/master/ase/calculators/vasp/vasp.py      #
+#      https://wiki.fysik.dtu.dk/ase/development/calculators.html                 #
+###################################################################################
+class fp_GD_Calculator(GenerateVaspInput, FileIOCalculator):
     """ASE interface for fp_GD, with the Calculator interface.
 
         Parameters:
@@ -271,6 +274,18 @@ class fp_GD_Calculator(GenerateVaspInput, Calculator):
             dict_params=self.dict_params.copy(),
             special_params=self.special_params.copy())
 
+    def write_input(self, atoms, properties=None, system_changes=None):
+        """Write VASP inputfiles, INCAR, KPOINTS and POTCAR"""
+        # Create the folders where we write the files, if we aren't in the
+        # current working directory.
+        if self.directory != os.curdir and not os.path.isdir(self.directory):
+            os.makedirs(self.directory)
+
+        self.initialize(atoms)
+
+        GenerateVaspInput.write_input(self, atoms, directory=self.directory)
+
+
     def read(self, label=None):
         """Read results from VASP output files.
         Files which are read: OUTCAR, CONTCAR and vasprun.xml
@@ -424,7 +439,7 @@ class fp_GD_Calculator(GenerateVaspInput, Calculator):
         try:
             _xml_atoms = read(file, index=-1, format='vasp-xml')
             # Silence mypy, we should only ever get a single atoms object
-            assert isinstance(_xml_atoms, ase.Atoms)
+            assert isinstance(_xml_atoms, Atoms)
         except ElementTree.ParseError as exc:
             raise calculator.ReadError(incomplete_msg) from exc
 
@@ -561,7 +576,7 @@ class fp_GD_Calculator(GenerateVaspInput, Calculator):
 #####################################
 
 
-def check_atoms(atoms: ase.Atoms) -> None:
+def check_atoms(atoms: Atoms) -> None:
     """Perform checks on the atoms object, to verify that
     it can be run by VASP.
     A CalculatorSetupError error is raised if the atoms are not supported.
@@ -572,7 +587,7 @@ def check_atoms(atoms: ase.Atoms) -> None:
         check(atoms)
 
 
-def check_cell(atoms: ase.Atoms) -> None:
+def check_cell(atoms: Atoms) -> None:
     """Check if there is a zero unit cell.
     Raises CalculatorSetupError if the cell is wrong.
     """
@@ -583,7 +598,7 @@ def check_cell(atoms: ase.Atoms) -> None:
             "unit cell.")
 
 
-def check_pbc(atoms: ase.Atoms) -> None:
+def check_pbc(atoms: Atoms) -> None:
     """Check if any boundaries are not PBC, as VASP
     cannot handle non-PBC.
     Raises CalculatorSetupError.
@@ -594,11 +609,11 @@ def check_pbc(atoms: ase.Atoms) -> None:
             "Please enable all PBC, e.g. atoms.pbc=True")
 
 
-def check_atoms_type(atoms: ase.Atoms) -> None:
+def check_atoms_type(atoms: Atoms) -> None:
     """Check that the passed atoms object is in fact an Atoms object.
     Raises CalculatorSetupError.
     """
-    if not isinstance(atoms, ase.Atoms):
+    if not isinstance(atoms, Atoms):
         raise calculator.CalculatorSetupError(
             ('Expected an Atoms object, '
              'instead got object of type {}'.format(type(atoms))))
