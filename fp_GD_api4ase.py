@@ -28,7 +28,7 @@ from ase.calculators.singlepoint import SinglePointDFTCalculator
 
 # Ref: https://gitlab.com/ase/ase/-/blob/master/ase/calculators/calculator.py
 #      https://gitlab.com/ase/ase/-/blob/master/ase/calculators/vasp/vasp.py
-class fp_GD_Calculator(Calculator):
+class fp_GD_Calculator(GenerateVaspInput, Calculator):
     """ASE interface for fp_GD, with the Calculator interface.
 
         Parameters:
@@ -131,6 +131,65 @@ class fp_GD_Calculator(Calculator):
 
     def clear_results(self):
         self.results.clear()
+
+    @contextmanager
+    def _txt_outstream(self):
+        """Custom function for opening a text output stream. Uses self.txt
+        to determine the output stream, and accepts a string or an open
+        writable object.
+        If a string is used, a new stream is opened, and automatically closes
+        the new stream again when exiting.
+
+        Examples:
+        # Pass a string
+        calc.txt = 'vasp.out'
+        with calc.txt_outstream() as out:
+            calc.run(out=out)   # Redirects the stdout to 'vasp.out'
+
+        # Use an existing stream
+        mystream = open('vasp.out', 'w')
+        calc.txt = mystream
+        with calc.txt_outstream() as out:
+            calc.run(out=out)
+        mystream.close()
+
+        # Print to stdout
+        calc.txt = '-'
+        with calc.txt_outstream() as out:
+            calc.run(out=out)   # output is written to stdout
+        """
+
+        txt = self.txt
+        open_and_close = False  # Do we open the file?
+
+        if txt is None:
+            # Suppress stdout
+            out = subprocess.DEVNULL
+        else:
+            if isinstance(txt, str):
+                if txt == '-':
+                    # subprocess.call redirects this to stdout
+                    out = None
+                else:
+                    # Open the file in the work directory
+                    txt = self._indir(txt)
+                    # We wait with opening the file, until we are inside the
+                    # try/finally
+                    open_and_close = True
+            elif hasattr(txt, 'write'):
+                out = txt
+            else:
+                raise RuntimeError('txt should either be a string'
+                                   'or an I/O stream, got {}'.format(txt))
+
+        try:
+            if open_and_close:
+                out = open(txt, 'w')
+            yield out
+        finally:
+            if open_and_close:
+                out.close()
+
 
     def calculate(self,
                   atoms=None,
