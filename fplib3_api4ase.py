@@ -8,7 +8,7 @@ import rcovdata
 # from contextlib import contextmanager
 # from pathlib import Path
 # from warnings import warn
-from typing import Dict, Any
+# from typing import Dict, Any
 # from xml.etree import ElementTree
 
 # import ase
@@ -53,7 +53,7 @@ class fp_GD_Calculator(Calculator):
 
     implemented_properties = [ 'energy', 'forces', 'stress' ]
 
-    '''
+    
     default_parameters = {
                           'contract': False,
                           'ntyp': 1,
@@ -61,9 +61,6 @@ class fp_GD_Calculator(Calculator):
                           'lmax': 0,
                           'cutoff': 6.0,
                           }
-    '''
-    # Can be used later to set some ASE defaults
-    default_parameters: Dict[str, Any] = {}
     
     nolabel = True
 
@@ -176,17 +173,8 @@ class fp_GD_Calculator(Calculator):
     def _store_param_state(self):
         """Store current parameter state"""
         self.param_state = dict(
-            float_params=self.float_params.copy(),
-            exp_params=self.exp_params.copy(),
-            string_params=self.string_params.copy(),
-            int_params=self.int_params.copy(),
-            input_params=self.input_params.copy(),
-            bool_params=self.bool_params.copy(),
-            list_int_params=self.list_int_params.copy(),
-            list_bool_params=self.list_bool_params.copy(),
-            list_float_params=self.list_float_params.copy(),
-            dict_params=self.dict_params.copy(),
-            special_params=self.special_params.copy())
+            default_parameters=self.default_parameters.copy()
+            )
 
     '''
     def update_atoms(self, atoms):
@@ -208,47 +196,47 @@ class fp_GD_Calculator(Calculator):
     @property
     def contract(self):
         """Access the contract in input_params dict"""
-        return self.input_params['contract']
+        return self.default_parameters['contract']
 
     @contract.setter
     def contract(self, contract):
         """Set contract in input_params dict"""
-        self.input_params['contract'] = contract
+        self.default_parameters['contract'] = contract
 
     @property
     def ntyp(self):
         """Access the ntyp in input_params dict"""
-        return self.input_params['ntyp']
+        return self.default_parameters['ntyp']
 
     @ntyp.setter
     def ntyp(self, ntyp):
         """Set ntyp in input_params dict"""
-        self.input_params['ntyp'] = ntyp
+        self.default_parameters['ntyp'] = ntyp
 
     @property
     def nx(self):
         """Access the nx in input_params dict"""
-        return self.input_params['nx']
+        return self.default_parameters['nx']
 
     @nx.setter
     def nx(self, nx):
         """Set ntyp in input_params dict"""
-        self.input_params['nx'] = nx
+        self.default_parameters['nx'] = nx
 
     @property
     def lmax(self):
         """Access the lmax in input_params dict"""
-        return self.input_params['lmax']
+        return self.default_parameters['lmax']
 
     @lmax.setter
     def lmax(self, lmax):
         """Set ntyp in input_params dict"""
-        self.input_params['lmax'] = lmax
+        self.default_parameters['lmax'] = lmax
 
     @property
     def cutoff(self):
         """Direct access to the cutoff parameter"""
-        return self.float_params['cutoff']
+        return self.default_parameters['cutoff']
 
     @cutoff.setter
     def cutoff(self, cutoff):
