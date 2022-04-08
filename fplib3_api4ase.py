@@ -138,9 +138,9 @@ class fp_GD_Calculator(Calculator):
         
         # self.update_atoms(atoms)
         
-        self.results['energy'] = energy
-        self.results['forces'] = forces
-        self.results['stress'] = stress
+        self.results['energy'] = self.get_potential_energy(atoms)
+        self.results['forces'] = self.get_forces(atoms)
+        self.results['stress'] = self.get_stress(atoms)
         
 
     def check_state(self, atoms, tol = 1e-15):
@@ -264,10 +264,7 @@ class fp_GD_Calculator(Calculator):
             rxyz = atoms.get_positions()
             types = fplib3.read_types('POSCAR')
             
-        # energy = self.results["energypotential"]["TOTAL"].energy * ENERGY_CONV["Hartree"]["eV"]
-        # energy = self.results["density"].grid.mp.asum(energy)
-        # energy = fplib_GD.get_fp_energy(lat, rxyz, types, contract = False, ntyp = 1, nx = 300, \
-        #                                 lmax = 0, znucl = np.array([3], int), cutoff = 4.5)
+        
         znucl = np.array([3], int)
         fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
                                 contract = False,
