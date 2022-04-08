@@ -29,23 +29,34 @@ from ase.calculators.calculator import Calculator, all_changes
 ###################################################################################
 class fp_GD_Calculator(Calculator):
     """ASE interface for fp_GD, with the Calculator interface.
+    
+        Implemented Properties:
+        
+            'energy': Sum of atomic fingerprint distance (L2 norm of two atomic 
+                                                          fingerprint vectors)
+            
+            'forces': Gradient of fingerprint energy, using Hellmann–Feynman theorem
+            
+            'stress': Cauchy stress tensor using finite difference method
 
         Parameters:
 
             atoms:  object
                 Attach an atoms object to the calculator.
 
-            label: str
-                Prefix for the output file, and sets the working directory.
-                Default is 'fingerprint'.
-
-            directory: str
-                Set the working directory. Is prepended to ``label``.
-
-            restart: str or bool
-                Sets a label for the directory to load files from.
-                if :code:`restart=True`, the working directory from
-                ``directory`` is used.
+            contract: bool
+                Calculate fingerprint vector in contracted Guassian-type orbitals or not
+            
+            ntype: int
+                Number of different types of atoms in unit cell
+            
+            nx: int
+                Maximum number of atoms in the sphere with cutoff radius for specific cell site
+                
+            lamx: int
+                Integer to control whether using s orbitals only or both s and p orbitals for 
+                calculating the Guassian overlap matrix (0 for s orbitals only, other integers
+                will indicate that using both s and p orbitals)
                 
     """
     # name = 'fingerprint'
@@ -64,10 +75,9 @@ class fp_GD_Calculator(Calculator):
     
     nolabel = True
 
-
     def __init__(self,
                  atoms = None,
-                 restart = None,
+                 # restart = None,
                  **kwargs
                 ):
 
@@ -76,14 +86,16 @@ class fp_GD_Calculator(Calculator):
         # Initialize parameter dictionaries
         self._store_param_state()  # Initialize an empty parameter state
 
+        '''
         if isinstance(restart, bool):
             if restart is True:
                 restart = self.label
             else:
                 restart = None
+        '''
         
         Calculator.__init__(self,
-                            restart = restart,
+                            # restart = restart,
                             atoms = atoms,
                             **kwargs
                            )
@@ -257,8 +269,20 @@ class fp_GD_Calculator(Calculator):
                 self.clear_results()
             self._atoms = atoms.copy()
 
+    def check_restart(self, atoms = None, **kwargs):
+        if (
+            self.atoms
+            and np.allclose(self.atoms.cell[:], atoms.cell[:])
+            and np.allclose(self.atoms.get_scaled_positions(), atoms.get_scaled_positions())
+            and self.energy is not None
+            and self.forces is not None
+        ):
+            return False
+        else:
+            return True
+
     def get_potential_energy(self, atoms = None, **kwargs):
-        if self.restart:
+        if self.check_restart(atoms):
             # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
@@ -277,7 +301,7 @@ class fp_GD_Calculator(Calculator):
         return energy
 
     def get_forces(self, atoms = None, **kwargs):
-        if self.restart:
+        if self.check_restart(atoms):
             # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
@@ -295,7 +319,7 @@ class fp_GD_Calculator(Calculator):
         return forces
 
     def get_stress(self, atoms = None, **kwargs):
-        if self.restart:
+        if self.check_restart(atoms):
             lat = atoms.cell[:]
             pos = atoms.get_scaled_positions()
             types = fplib3.read_types('POSCAR')
