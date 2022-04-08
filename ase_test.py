@@ -8,7 +8,7 @@ from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from ase.constraints import StrainFilter, UnitCellFilter
 from ase.io.trajectory import Trajectory
 
-from fp_GD_api4ase import fp_GD_Calculator
+from fplib3_api4ase import fp_GD_Calculator
 from ase.calculators.vasp import Vasp
 from ase.calculators.mixing import MixedCalculator
 
