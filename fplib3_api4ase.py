@@ -205,56 +205,56 @@ class fp_GD_Calculator(Calculator):
     def contract(self):
         """Access the contract in input_params dict"""
         return self.input_params['contract']
-    
+
     @contract.setter
     def contract(self, contract):
         """Set contract in input_params dict"""
         self.input_params['contract'] = contract
-    
+
     @property
     def ntyp(self):
         """Access the ntyp in input_params dict"""
         return self.input_params['ntyp']
-    
+
     @ntyp.setter
     def ntyp(self, ntyp):
         """Set ntyp in input_params dict"""
         self.input_params['ntyp'] = ntyp
-    
+
     @property
     def nx(self):
         """Access the nx in input_params dict"""
         return self.input_params['nx']
-    
+
     @nx.setter
     def nx(self, nx):
         """Set ntyp in input_params dict"""
         self.input_params['nx'] = nx
-    
+
     @property
     def lmax(self):
         """Access the lmax in input_params dict"""
         return self.input_params['lmax']
-    
+
     @lmax.setter
     def lmax(self, lmax):
         """Set ntyp in input_params dict"""
         self.input_params['lmax'] = lmax
-    
+
     @property
     def cutoff(self):
         """Direct access to the cutoff parameter"""
         return self.float_params['cutoff']
-    
+
     @cutoff.setter
     def cutoff(self, cutoff):
-        """Direct access for setting the encut parameter"""
+        """Direct access for setting the cutoff parameter"""
         self.set(cutoff = cutoff)
-    
+
     @property
     def atoms(self):
         return self._atoms
-    
+
     @atoms.setter
     def atoms(self, atoms):
         if atoms is None:
@@ -264,7 +264,7 @@ class fp_GD_Calculator(Calculator):
             if self.check_state(atoms):
                 self.clear_results()
             self._atoms = atoms.copy()
-    
+
     def get_potential_energy(self, atoms = None, **kwargs):
         if self.restart:
             # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
