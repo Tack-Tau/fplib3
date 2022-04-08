@@ -1,10 +1,8 @@
 import os
 import sys
 import numpy as np
-import fplib_GD
 import f90test
 import fplib3
-# import fplib_GD.readvasp as readvasp
 import rcovdata
 
 # from contextlib import contextmanager
@@ -268,14 +266,19 @@ class fp_GD_Calculator(Calculator):
             # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
-            types = fplib_GD.read_types('POSCAR')
+            types = fplib3.read_types('POSCAR')
             
         # energy = self.results["energypotential"]["TOTAL"].energy * ENERGY_CONV["Hartree"]["eV"]
         # energy = self.results["density"].grid.mp.asum(energy)
         # energy = fplib_GD.get_fp_energy(lat, rxyz, types, contract = False, ntyp = 1, nx = 300, \
         #                                 lmax = 0, znucl = np.array([3], int), cutoff = 4.5)
         znucl = np.array([3], int)
-        fp, dfp = fplib3.get_fp(False, 1, 100, 0, lat, rxyz, types, znucl, 6.0)
+        fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
+                                contract = False,
+                                ntyp = 1,
+                                nx = 100,
+                                lamx = 0,
+                                cutoff = 6.0)
         e,f = fplib3.get_ef(fp, dfp)
         energy = e
         return energy
@@ -285,13 +288,15 @@ class fp_GD_Calculator(Calculator):
             # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
-            types = fplib_GD.read_types('POSCAR')
-            # self.get_potential_energy(atoms)
-        # forces = fplib_GD.get_FD_forces(lat, rxyz, types, contract = False, ntyp = 1, nx = 300, \
-        #                                 lmax = 0, znucl = np.array([3], int), cutoff = 4.5, \
-        #                                 iter_max = 1, step_size = 1e-4) 
+            types = fplib3.read_types('POSCAR')
+            # self.get_potential_energy(atoms) 
         znucl = np.array([3], int)
-        fp, dfp = fplib3.get_fp(False, 1, 100, 0, lat, rxyz, types, znucl, 6.0)
+        fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
+                                contract = False,
+                                ntyp = 1,
+                                nx = 100,
+                                lamx = 0,
+                                cutoff = 6.0)
         e,f = fplib3.get_ef(fp, dfp)
         forces = f
         return forces
@@ -300,7 +305,7 @@ class fp_GD_Calculator(Calculator):
         if self.restart:
             lat = atoms.cell[:]
             pos = atoms.get_scaled_positions()
-            types = fplib_GD.read_types('POSCAR')
+            types = fplib3.read_types('POSCAR')
             self.get_potential_energy(atoms)
         # stress = fplib_GD.get_FD_stress(lat, pos, types, contract = False, ntyp = 1, nx = 300, \
         #                                 lmax = 0, znucl = np.array([3], int), cutoff = 6.5, \

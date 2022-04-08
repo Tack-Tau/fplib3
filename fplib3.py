@@ -4,6 +4,46 @@ import rcovdata
 # import numba
 
 # @numba.jit()
+def readvasp(vp):
+    buff = []
+    with open(vp) as f:
+        for line in f:
+            buff.append(line.split())
+
+    lat = np.array(buff[2:5], float) 
+    try:
+        typt = np.array(buff[5], int)
+    except:
+        del(buff[5])
+        typt = np.array(buff[5], int)
+    nat = sum(typt)
+    pos = np.array(buff[7:7 + nat], float)
+    types = []
+    for i in range(len(typt)):
+        types += [i+1]*typt[i]
+    types = np.array(types, int)
+    rxyz = np.dot(pos, lat)
+    # rxyz = pos
+    return lat, rxyz, types
+
+# @numba.jit()
+def read_types(vp):
+    buff = []
+    with open(vp) as f:
+        for line in f:
+            buff.append(line.split())
+    try:
+        typt = np.array(buff[5], int)
+    except:
+        del(buff[5])
+        typt = np.array(buff[5], int)
+    types = []
+    for i in range(len(typt)):
+        types += [i+1]*typt[i]
+    types = np.array(types, int)
+    return types
+
+# @numba.jit()
 def get_gom(lseg, rxyz, alpha, amp):
     # s orbital only lseg == 1
     nat = len(rxyz)    
@@ -131,7 +171,12 @@ def get_fpdist_nonperiodic(fp1, fp2):
     return np.sqrt(np.vdot(d, d))
 
 # @numba.jit()
-def get_fp(contract, ntyp, nx, lmax, lat, rxyz, types, znucl, cutoff):
+def get_fp(lat, rxyz, types, znucl,
+           contract = False,
+           ntyp = 1,
+           nx = 100,
+           lmax = 0,
+           cutoff = 6.0):
     if lmax == 0:
         lseg = 1
         l = 1
