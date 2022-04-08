@@ -113,7 +113,7 @@ class fp_GD_Calculator(Calculator):
 
     def calculate(self,
                   atoms = None,
-                  properties = None,
+                  properties = [ 'energy', 'forces', 'stress' ],
                   system_changes = tuple(all_changes),
                  ):
         """Do a VASP calculation in the specified directory.
