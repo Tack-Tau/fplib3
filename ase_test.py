@@ -1,12 +1,8 @@
 import os
 import sys
 import numpy as np
-import fplib_GD
 import writekp
 import ase.io
-from ase import units
-# from ase.calculators.calculator import Calculator
-# from ase.lattice.cubic import FaceCenteredCubic
 from ase.optimize import BFGS, LBFGS, BFGSLineSearch, QuasiNewton, FIRE
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from ase.constraints import StrainFilter, UnitCellFilter

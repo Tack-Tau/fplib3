@@ -134,11 +134,13 @@ class fp_GD_Calculator(Calculator):
             properties = self.implemented_properties
 
         Calculator.calculate(self, atoms, properties, system_changes)
-
         
-        # Read results from calculation
-        self.update_atoms(atoms)
-        self.read_results()
+        # self.update_atoms(atoms)
+        
+        self.results['energy'] = energy
+        self.results['forces'] = forces
+        self.results['stress'] = stress
+        
 
     def check_state(self, atoms, tol = 1e-15):
         """Check for system changes since last calculation."""
@@ -182,7 +184,7 @@ class fp_GD_Calculator(Calculator):
             dict_params=self.dict_params.copy(),
             special_params=self.special_params.copy())
 
-
+'''
     def update_atoms(self, atoms):
         """Update the atoms object with new positions and cell"""
         if (self.int_params['ibrion'] is not None
@@ -195,6 +197,7 @@ class fp_GD_Calculator(Calculator):
                 atoms.cell = atoms_sorted.cell
 
         self.atoms = atoms  # Creates a copy
+'''
 
     # Below defines some functions for faster access to certain common keywords
     @property
