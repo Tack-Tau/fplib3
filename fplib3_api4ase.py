@@ -200,7 +200,7 @@ class fp_GD_Calculator(Calculator):
 '''
 
     # Below defines some functions for faster access to certain common keywords
-    @property
+   @property
     def contract(self):
         """Access the contract in input_params dict"""
         return self.input_params['contract']
