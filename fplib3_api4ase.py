@@ -8,7 +8,7 @@ import rcovdata
 # from contextlib import contextmanager
 # from pathlib import Path
 # from warnings import warn
-# from typing import Dict, Any
+from typing import Dict, Any
 # from xml.etree import ElementTree
 
 # import ase
@@ -53,7 +53,7 @@ class fp_GD_Calculator(Calculator):
 
     implemented_properties = [ 'energy', 'forces', 'stress' ]
 
-    # Can be used later to set some ASE defaults
+    '''
     default_parameters = {
                           'contract': False,
                           'ntyp': 1,
@@ -61,6 +61,10 @@ class fp_GD_Calculator(Calculator):
                           'lmax': 0,
                           'cutoff': 6.0,
                           }
+    '''
+    # Can be used later to set some ASE defaults
+    default_parameters: Dict[str, Any] = {}
+    
     nolabel = True
 
 
