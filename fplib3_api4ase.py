@@ -274,8 +274,9 @@ class fp_GD_Calculator(Calculator):
             self.atoms
             and np.allclose(self.atoms.cell[:], atoms.cell[:])
             and np.allclose(self.atoms.get_scaled_positions(), atoms.get_scaled_positions())
-            and self.energy is not None
-            and self.forces is not None
+            and self.results['energy'] is not None
+            and self.results['forces'] is not None
+            and self.results['stress'] is not None
         ):
             return False
         else:
