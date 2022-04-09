@@ -58,6 +58,9 @@ class fp_GD_Calculator(Calculator):
                 calculating the Guassian overlap matrix (0 for s orbitals only, other integers
                 will indicate that using both s and p orbitals)
                 
+            cutoff: float
+                Cutoff radius for f_c(r) (smooth cutoff function) [amp], unit in Angstroms
+                
     """
     # name = 'fingerprint'
     # ase_objtype = 'fingerprint_calculator'  # For JSON storage
@@ -170,6 +173,7 @@ class fp_GD_Calculator(Calculator):
                     return False
             return True
 
+        '''
         # First we check for default changes
         system_changes = Calculator.check_state(self, atoms, tol=tol)
 
@@ -181,6 +185,7 @@ class fp_GD_Calculator(Calculator):
                 system_changes.append(param_string)
 
         return system_changes
+        '''
 
     def _store_param_state(self):
         """Store current parameter state"""
@@ -269,6 +274,7 @@ class fp_GD_Calculator(Calculator):
                 self.clear_results()
             self._atoms = atoms.copy()
 
+    '''
     def check_restart(self, atoms = None, **kwargs):
         if (
             self.atoms
@@ -281,9 +287,10 @@ class fp_GD_Calculator(Calculator):
             return False
         else:
             return True
+    '''
 
     def get_potential_energy(self, atoms = None, **kwargs):
-        if self.check_restart(atoms):
+        if self.check_state(atoms):
             # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
@@ -302,7 +309,7 @@ class fp_GD_Calculator(Calculator):
         return energy
 
     def get_forces(self, atoms = None, **kwargs):
-        if self.check_restart(atoms):
+        if self.check_state(atoms):
             # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
@@ -320,7 +327,7 @@ class fp_GD_Calculator(Calculator):
         return forces
 
     def get_stress(self, atoms = None, **kwargs):
-        if self.check_restart(atoms):
+        if self.check_state(atoms):
             lat = atoms.cell[:]
             pos = atoms.get_scaled_positions()
             types = fplib3.read_types('POSCAR')
