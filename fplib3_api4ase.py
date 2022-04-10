@@ -53,7 +53,7 @@ class fp_GD_Calculator(Calculator):
             nx: int
                 Maximum number of atoms in the sphere with cutoff radius for specific cell site
                 
-            lamx: int
+            lmax: int
                 Integer to control whether using s orbitals only or both s and p orbitals for 
                 calculating the Guassian overlap matrix (0 for s orbitals only, other integers
                 will indicate that using both s and p orbitals)
@@ -302,7 +302,7 @@ class fp_GD_Calculator(Calculator):
                                 contract = False,
                                 ntyp = 1,
                                 nx = 100,
-                                lamx = 0,
+                                lmax = 0,
                                 cutoff = 6.0)
         e,f = fplib3.get_ef(fp, dfp)
         energy = e
@@ -320,7 +320,7 @@ class fp_GD_Calculator(Calculator):
                                 contract = False,
                                 ntyp = 1,
                                 nx = 100,
-                                lamx = 0,
+                                lmax = 0,
                                 cutoff = 6.0)
         e,f = fplib3.get_ef(fp, dfp)
         forces = f
