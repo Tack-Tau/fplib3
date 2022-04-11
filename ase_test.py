@@ -26,7 +26,7 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               # ediffg = -1E-3,
               encut = 520.0,
               ibrion = 2,
-              isif = 2,
+              isif = 3,
               nsw = 1,
               ismear = 0,
               sigma = 0.05,
@@ -39,7 +39,7 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               kpts = kpoints,
               )
 calc2 = fp_GD_Calculator()
-calc = MixedCalculator(calc1, calc2, 0.01, 1)
+calc = MixedCalculator(calc1, calc2, 1, 1)
 # atoms.set_calculator(calc)
 atoms.calc = calc
 
