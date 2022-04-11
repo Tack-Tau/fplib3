@@ -41,7 +41,7 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
 calc2 = fp_GD_Calculator()
 calc = MixedCalculator(calc1, calc2, 1, 100)
 # atoms.set_calculator(calc)
-atoms.calc = calc
+atoms.calc = calc1
 
 print (atoms.get_potential_energy())
 print (atoms.get_forces())
