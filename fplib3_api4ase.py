@@ -330,7 +330,7 @@ class fp_GD_Calculator(Calculator):
             lat = atoms.cell[:]
             pos = atoms.get_scaled_positions()
             types = fplib3.read_types('POSCAR')
-            self.get_potential_energy(atoms)
+            # self.get_potential_energy(atoms)
         # stress = fplib_GD.get_FD_stress(lat, pos, types, contract = False, ntyp = 1, nx = 300, \
         #                                 lmax = 0, znucl = np.array([3], int), cutoff = 6.5, \
         #                                 iter_max = 1, step_size = 1e-4)
