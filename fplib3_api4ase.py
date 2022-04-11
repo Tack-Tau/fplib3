@@ -85,8 +85,8 @@ class fp_GD_Calculator(Calculator):
                 ):
 
         self._atoms = None
-        self._energy = None
-        self._forces = None
+        self.energy = None
+        self.forces = None
         self.results = {}
         # Initialize parameter dictionaries
         self._store_param_state()  # Initialize an empty parameter state
