@@ -17,7 +17,7 @@ from ase.io import read, write
 # import ase.units as units
 from ase.atoms import Atoms
 from ase.cell import Cell
-from ase.calculators.calculator import Calculator, all_changes
+from ase.calculators.calculator import Calculator, CalculatorSetupError, all_changes
 # from ase.calculators.calculator import BaseCalculator, FileIOCalculator
 # from ase.calculators.vasp.create_input import GenerateVaspInput
 # from ase.calculators.singlepoint import SinglePointDFTCalculator
@@ -358,7 +358,7 @@ def check_cell(atoms: Atoms) -> None:
     Raises CalculatorSetupError if the cell is wrong.
     """
     if atoms.cell.rank < 3:
-        raise calculator.CalculatorSetupError(
+        raise CalculatorSetupError(
             "The lattice vectors are zero! "
             "This is the default value - please specify a "
             "unit cell.")
@@ -370,7 +370,7 @@ def check_pbc(atoms: Atoms) -> None:
     Raises CalculatorSetupError.
     """
     if not atoms.pbc.all():
-        raise calculator.CalculatorSetupError(
+        raise CalculatorSetupError(
             "Vasp cannot handle non-periodic boundaries. "
             "Please enable all PBC, e.g. atoms.pbc=True")
 
@@ -380,6 +380,6 @@ def check_atoms_type(atoms: Atoms) -> None:
     Raises CalculatorSetupError.
     """
     if not isinstance(atoms, Atoms):
-        raise calculator.CalculatorSetupError(
+        raise CalculatorSetupError(
             ('Expected an Atoms object, '
              'instead got object of type {}'.format(type(atoms))))
