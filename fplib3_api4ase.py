@@ -85,6 +85,8 @@ class fp_GD_Calculator(Calculator):
                 ):
 
         self._atoms = None
+        self._energy = None
+        self._forces = None
         self.results = {}
         # Initialize parameter dictionaries
         self._store_param_state()  # Initialize an empty parameter state
@@ -157,7 +159,7 @@ class fp_GD_Calculator(Calculator):
         self.results['forces'] = self.get_forces(atoms)
         self.results['stress'] = self.get_stress(atoms)
         
-
+    '''
     def check_state(self, atoms, tol = 1e-15):
         """Check for system changes since last calculation."""
         def compare_dict(d1, d2):
@@ -173,7 +175,6 @@ class fp_GD_Calculator(Calculator):
                     return False
             return True
 
-        '''
         # First we check for default changes
         system_changes = Calculator.check_state(self, atoms, tol=tol)
 
@@ -274,23 +275,21 @@ class fp_GD_Calculator(Calculator):
                 self.clear_results()
             self._atoms = atoms.copy()
 
-    '''
     def check_restart(self, atoms = None, **kwargs):
         if (
             self.atoms
             and np.allclose(self.atoms.cell[:], atoms.cell[:])
             and np.allclose(self.atoms.get_scaled_positions(), atoms.get_scaled_positions())
-            and self.results['energy'] is not None
-            and self.results['forces'] is not None
-            and self.results['stress'] is not None
+            and self.energy is not None
+            and self.forces is not None
+            # and self.stress is not None
         ):
             return False
         else:
             return True
-    '''
 
     def get_potential_energy(self, atoms = None, **kwargs):
-        if self.check_state(atoms):
+        if self.check_restart(atoms):
             # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
@@ -309,7 +308,7 @@ class fp_GD_Calculator(Calculator):
         return energy
 
     def get_forces(self, atoms = None, **kwargs):
-        if self.check_state(atoms):
+        if self.check_restart(atoms):
             # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
@@ -327,7 +326,7 @@ class fp_GD_Calculator(Calculator):
         return forces
 
     def get_stress(self, atoms = None, **kwargs):
-        if self.check_state(atoms):
+        if self.check_restart(atoms):
             lat = atoms.cell[:]
             pos = atoms.get_scaled_positions()
             types = fplib3.read_types('POSCAR')
