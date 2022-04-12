@@ -113,8 +113,8 @@ class MixedCalculator(LinearCombinationCalculator):
         weight for calculator 2
     """
 
-    def __init__(self, calc1, calc2, weight1, weight2):
-        super().__init__([calc1, calc2], [weight1, weight2])
+    def __init__(self, calc1, calc2):
+        super().__init__([calc1, calc2])
 
     def set_weights(self, w1, w2):
         self.weights[0] = w1
@@ -125,7 +125,8 @@ class MixedCalculator(LinearCombinationCalculator):
                   properties = ['energy', 'forces', 'stress'], 
                   system_changes = all_changes
                  ):
-        """ Calculates all the specific property for each calculator and returns with the summed value.
+        """ Calculates all the specific property for each calculator and returns 
+            with the summed value.
         """
 
         super().calculate(atoms, properties, system_changes)
@@ -133,20 +134,40 @@ class MixedCalculator(LinearCombinationCalculator):
             energy1 = self.calcs[0].get_property('energy', atoms)
             energy2 = self.calcs[1].get_property('energy', atoms)
             self.results['energy_contributions'] = (energy1, energy2)
+            
+        if 'forces' in properties:
+            force1 = self.calcs[0].get_property('forces', atoms)
+            force2 = self.calcs[1].get_property('forces', atoms)
+            self.results['force_contributions'] = (force1, forces2)
+            
+        if 'stress' in properties:
+            stress1 = self.calcs[0].get_property('stress', atoms)
+            stress2 = self.calcs[1].get_property('stress', atoms)
+            self.results['stress_contributions'] = (stress1, stress2)
 
-    def get_energy_contributions(self, atoms=None):
+    def get_energy_contributions(self, atoms = None):
         """ Return the potential energy from calc1 and calc2 respectively """
-        self.calculate(properties=['energy'], atoms=atoms)
+        self.calculate(properties = ['energy'], atoms = atoms)
         return self.results['energy_contributions']
+    
+    def get_force_contributions(self, atoms = None):
+        """ Return the forces from calc1 and calc2 respectively """
+        self.calculate(properties = ['forces'], atoms = atoms)
+        return self.results['force_contributions']
+    
+    def get_stress_contributions(self, atoms = None):
+        """ Return the Cauchy stress tensor from calc1 and calc2 respectively """
+        self.calculate(properties = ['stress'], atoms = atoms)
+        return self.results['stress_contributions']
 
 
 class SumCalculator(LinearCombinationCalculator):
     """SumCalculator for combining multiple calculators.
 
-    This calculator can be used when there are different calculators for the different chemical environment or
-    for example during delta leaning. It works with a list of arbitrary calculators and evaluates them in sequence
-    when it is required.
-    The supported properties are the intersection of the implemented properties in each calculator.
+    This calculator can be used when there are different calculators for the different chemical 
+    environment or for example during delta leaning. It works with a list of arbitrary calculators
+    and evaluates them in sequence when it is required. The supported properties are the intersection
+    of the implemented properties in each calculator.
     """
 
     def __init__(self, calcs, atoms = None):
