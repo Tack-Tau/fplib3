@@ -115,18 +115,19 @@ class fp_GD_Calculator(Calculator):
         """
         # Check for zero-length lattice vectors and PBC
         # and that we actually have an Atoms object.
-        check_atoms(atoms)
+        # check_atoms(atoms)
 
-        self.clear_results()
-
+        # self.clear_results()
+        '''
         if atoms is not None:
             self.atoms = atoms.copy()
         
         if properties is None:
             properties = self.implemented_properties
-
+        '''
         Calculator.calculate(self, atoms, properties, system_changes)
-        
+        if atoms is None:
+            atoms = self.atoms
         # self.update_atoms(atoms)
         
         self.results['energy'] = self.get_potential_energy(atoms)
