@@ -1,9 +1,5 @@
-import os
-import sys
 import numpy as np
 
-from ase.cell import Cell
-from ase.atoms import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from ase.calculators.calculator import PropertyNotImplementedError
 
@@ -39,6 +35,7 @@ class LinearCombinationCalculator(Calculator):
         if not self.implemented_properties:
             raise PropertyNotImplementedError('There are no common property \
                                                implemented for the potentials!')
+        self.calcs = calcs
         '''
         if weights is not None:
             self.weights = weights.copy()
@@ -46,17 +43,17 @@ class LinearCombinationCalculator(Calculator):
         weights = np.ones(len(calcs)).tolist()
         pi_fmax = 1.0
         for i in range(len(calcs)):
-            forces_i = calcs[i].get_property('forces', atoms)
+            forces_i = self.calcs[i].get_property('forces', atoms)
             pi_fmax = pi_fmax*np.amax(np.absolute(forces_i))
         for j in range(len(weights)):
-            forces_j = calcs[j].get_property('forces', atoms)
+            forces_j = self.calcs[j].get_property('forces', atoms)
             weights[j] = np.amax(np.absolute(forces_j)) / pi_fmax
         
         if len(weights) != len(calcs):
             raise ValueError('The length of the weights must be the same as \
                               the number of calculators!')
 
-        self.calcs = calcs
+        # self.calcs = calcs
         self.weights = weights
 
     def calculate(self, 
