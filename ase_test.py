@@ -9,7 +9,8 @@ from ase.constraints import StrainFilter, UnitCellFilter
 from ase.io.trajectory import Trajectory
 
 from fplib3_api4ase import fp_GD_Calculator
-from fplib3_mixing import MixedCalculator
+# from fplib3_mixing import MixedCalculator
+from ase.calculators.mixing import MixedCalculator
 from ase.calculators.vasp import Vasp
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
@@ -39,12 +40,24 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               kpts = kpoints,
               )
 calc2 = fp_GD_Calculator()
-calc = MixedCalculator(calc1, calc2)
+# calc = MixedCalculator(calc1, calc2)
 # atoms.set_calculator(calc)
-atoms.calc = calc
+atoms.calc = calc1
+print ("vasp_energy:\n", atoms.get_potential_energy())
+print ("vasp_forces:\n", atoms.get_forces())
+fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
-print (atoms.get_potential_energy())
-print (atoms.get_forces())
+atoms.calc = calc2
+print ("fp_energy:\n", atoms.get_potential_energy())
+print ("fp_forces:\n", atoms.get_forces())
+fmax_2 = np.amax(np.absolute(atoms.get_forces()))
+
+f_ratio = fmax_1 / fmax_2
+
+calc = MixedCalculator(calc1, calc2, 1, f_ratio)
+atoms.calc = calc
+print ("mixed_energy:\n", atoms.get_potential_energy())
+print ("mixed_forces:\n", atoms.get_forces())
 
 ############################## Relaxation type ############################## 
 #     https ://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-optimize      #
