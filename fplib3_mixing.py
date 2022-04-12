@@ -47,7 +47,7 @@ class LinearCombinationCalculator(Calculator):
             pi_fmax = pi_fmax*np.amax(np.absolute(forces_i))
         for j in range(len(weights)):
             forces_j = self.calcs[j].get_property('forces', atoms)
-            weights[j] = np.amax(np.absolute(forces_j)) / pi_fmax
+            weights[j] = pi_fmax / np.amax(np.absolute(forces_j))
         
         if len(weights) != len(calcs):
             raise ValueError('The length of the weights must be the same as \
