@@ -43,10 +43,10 @@ class LinearCombinationCalculator(Calculator):
         weights = np.ones(len(calcs)).tolist()
         pi_fmax = 1.0
         for i in range(len(calcs)):
-            forces_i = self.calcs[i].get_property('forces', atoms)
+            forces_i = calcs[i].get_property('forces', atoms)
             pi_fmax = pi_fmax*np.amax(np.absolute(forces_i))
         for j in range(len(weights)):
-            forces_j = self.calcs[j].get_property('forces', atoms)
+            forces_j = calcs[j].get_property('forces', atoms)
             weights[j] = pi_fmax / np.amax(np.absolute(forces_j))
         
         if len(weights) != len(calcs):
