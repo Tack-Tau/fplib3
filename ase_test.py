@@ -9,8 +9,8 @@ from ase.constraints import StrainFilter, UnitCellFilter
 from ase.io.trajectory import Trajectory
 
 from fplib3_api4ase import fp_GD_Calculator
+from fplib3_mixing import MixedCalculator
 from ase.calculators.vasp import Vasp
-from ase.calculators.mixing import MixedCalculator
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
@@ -22,8 +22,8 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               setups = 'recommended', 
               txt = 'vasp.out',
               prec = 'Accurate',
-              ediff = 1E-5,
-              # ediffg = -1E-3,
+              ediff = 1.0e-5,
+              # ediffg = -1.0e-3,
               encut = 520.0,
               ibrion = 2,
               isif = 3,
@@ -46,22 +46,23 @@ atoms.calc = calc
 print (atoms.get_potential_energy())
 print (atoms.get_forces())
 
-# ############################## Relaxation type ##############################
-# '''
-# Ref : 
-#     https ://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-optimize
-#     https ://wiki.fysik.dtu.dk/ase/ase/constraints.html
-# '''
+############################## Relaxation type ############################## 
+#     https ://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-optimize      #
+#     https ://wiki.fysik.dtu.dk/ase/ase/constraints.html                   #
+#############################################################################
+
 af = atoms
 # af = StrainFilter(atoms)
-# # af = UnitCellFilter(atoms)
-# ############################## Relaxation method ##############################
+# af = UnitCellFilter(atoms)
+
+############################## Relaxation method ##############################\
+
 # opt = BFGS(af, maxstep = 1.e-1, trajectory = trajfile)
 opt = FIRE(af, maxstep = 1.e-1, trajectory = trajfile)
-# opt = LBFGS(af, maxstep = 1.e-2, trajectory = trajfile, memory = 10, use_line_search = True)
-# # opt = LBFGS(af, maxstep = 1.e-3, trajectory = trajfile, memory = 10, use_line_search = False)
-# # opt = SciPyFminCG(af, trajectory = trajfile)
-# # opt = SciPyFminBFGS(af, trajectory = trajfile)
+# opt = LBFGS(af, maxstep = 1.e-1, trajectory = trajfile, memory = 10, use_line_search = True)
+# opt = LBFGS(af, maxstep = 1.e-1, trajectory = trajfile, memory = 10, use_line_search = False)
+# opt = SciPyFminCG(af, maxstep = 1.e-1, trajectory = trajfile)
+# opt = SciPyFminBFGS(af, maxstep = 1.e-1, trajectory = trajfile)
 
 opt.run(fmax = 0.001)
 
