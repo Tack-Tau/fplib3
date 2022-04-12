@@ -20,10 +20,10 @@ class Mixer:
                                               ' properties in common!')
         weights = np.ones(len(calcs)).tolist()
         pi_fmax = 1.0
-        for i in len(calcs):
-            pi_fmax = pi_fmax*clacs[i].np.amax(np.absolute(get_forces(atoms)))
-        for j in len(weights):
-            weights[j] = clacs[j].np.amax(np.absolute(get_forces(atoms))) / pi_fmax
+        for i in range(len(calcs)):
+            pi_fmax = pi_fmax*np.amax(np.absolute(clacs[i].get_forces(atoms)))
+        for j in range(len(weights)):
+            weights[j] = np.amax(np.absolute(clacs[j].get_forces(atoms))) / pi_fmax
         self.calcs = calcs
         self.weights = weights
 
