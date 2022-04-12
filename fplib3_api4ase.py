@@ -5,28 +5,18 @@ import f90test
 import fplib3
 import rcovdata
 
-# from contextlib import contextmanager
-# from pathlib import Path
-# from warnings import warn
-# from typing import Dict, Any
-# from xml.etree import ElementTree
-
-# import ase
-from ase.io import read, write
-#from ase.utils import PurePath
-# import ase.units as units
+# from ase.io.vasp import write_vasp
 from ase.atoms import Atoms
 from ase.cell import Cell
-from ase.calculators.calculator import Calculator, CalculatorSetupError, all_changes
-# from ase.calculators.calculator import BaseCalculator, FileIOCalculator
-# from ase.calculators.vasp.create_input import GenerateVaspInput
-# from ase.calculators.singlepoint import SinglePointDFTCalculator
+from ase.calculators.calculator import Calculator
+from ase.calculators.calculator import CalculatorSetupError, all_changes
 
-################################ ASE Reference ####################################
-#      https://gitlab.com/ase/ase/-/blob/master/ase/calculators/calculator.py     #
-#      https://gitlab.com/ase/ase/-/blob/master/ase/calculators/vasp/vasp.py      #
-#      https://wiki.fysik.dtu.dk/ase/development/calculators.html                 #
-###################################################################################
+#################################### ASE Reference ####################################
+#        https://gitlab.com/ase/ase/-/blob/master/ase/calculators/calculator.py       #
+#        https://gitlab.com/ase/ase/-/blob/master/ase/calculators/vasp/vasp.py        #
+#        https://wiki.fysik.dtu.dk/ase/development/calculators.html                   #
+#######################################################################################
+
 class fp_GD_Calculator(Calculator):
     """ASE interface for fp_GD, with the Calculator interface.
     
@@ -80,7 +70,6 @@ class fp_GD_Calculator(Calculator):
 
     def __init__(self,
                  atoms = None,
-                 # restart = None,
                  **kwargs
                 ):
 
@@ -90,28 +79,15 @@ class fp_GD_Calculator(Calculator):
         self.results = {}
         # Initialize parameter dictionaries
         self._store_param_state()  # Initialize an empty parameter state
-
-        '''
-        if isinstance(restart, bool):
-            if restart is True:
-                restart = self.label
-            else:
-                restart = None
-        '''
         
         Calculator.__init__(self,
-                            # restart = restart,
                             atoms = atoms,
                             **kwargs
                            )
 
     def set(self, **kwargs):
         """Override the set function, to test for changes in the
-        fingerprint Calculator, then call the create_input.set()
-        on remaining input keys.
-
-        Allows for setting ``label``, ``directory`` and ``txt``
-        without resetting the results in the calculator.
+        fingerprint Calculator.
         """
         changed_parameters = {}
 
@@ -133,11 +109,9 @@ class fp_GD_Calculator(Calculator):
                   properties = [ 'energy', 'forces', 'stress' ],
                   system_changes = tuple(all_changes),
                  ):
-        """Do a VASP calculation in the specified directory.
-
-        This will generate the necessary VASP input files, and then
-        execute VASP. After execution, the energy, forces. etc. are read
-        from the VASP output files.
+        """Do a fingerprint calculation in the specified directory.
+        This will read VASP input files (POSCAR) and then execute 
+        fp_GD.
         """
         # Check for zero-length lattice vectors and PBC
         # and that we actually have an Atoms object.
@@ -186,28 +160,13 @@ class fp_GD_Calculator(Calculator):
                 system_changes.append(param_string)
 
         return system_changes
-        '''
+    '''
 
     def _store_param_state(self):
         """Store current parameter state"""
         self.param_state = dict(
             default_parameters=self.default_parameters.copy()
             )
-
-    '''
-    def update_atoms(self, atoms):
-        """Update the atoms object with new positions and cell"""
-        if (self.int_params['ibrion'] is not None
-                and self.int_params['nsw'] is not None):
-            if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
-                # Update atomic positions and unit cell with the ones read
-                # from CONTCAR.
-                atoms_sorted = read(self._indir('CONTCAR'))
-                atoms.positions = atoms_sorted[self.resort].positions
-                atoms.cell = atoms_sorted.cell
-
-        self.atoms = atoms  # Creates a copy
-    '''
 
     # Below defines some functions for faster access to certain common keywords
     
@@ -290,7 +249,7 @@ class fp_GD_Calculator(Calculator):
 
     def get_potential_energy(self, atoms = None, **kwargs):
         if self.check_restart(atoms):
-            # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
+            # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
             types = fplib3.read_types('POSCAR')
@@ -309,7 +268,7 @@ class fp_GD_Calculator(Calculator):
 
     def get_forces(self, atoms = None, **kwargs):
         if self.check_restart(atoms):
-            # ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
+            # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
             types = fplib3.read_types('POSCAR')
@@ -327,6 +286,7 @@ class fp_GD_Calculator(Calculator):
 
     def get_stress(self, atoms = None, **kwargs):
         if self.check_restart(atoms):
+            # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             pos = atoms.get_scaled_positions()
             types = fplib3.read_types('POSCAR')
@@ -336,11 +296,9 @@ class fp_GD_Calculator(Calculator):
         #                                 iter_max = 1, step_size = 1e-4)
         return np.zeros(6)
 
-
-#####################################
-# Below defines helper functions
-# for the VASP calculator
-#####################################
+########################################################################################
+####################### Helper functions for the VASP calculator #######################
+########################################################################################
 
 def check_atoms(atoms: Atoms) -> None:
     """Perform checks on the atoms object, to verify that
