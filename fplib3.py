@@ -343,22 +343,53 @@ def get_fpdist(ntyp, types, fp1, fp2, mx=False):
         return fpd
 
 
-def get_ef(fp, dfp):
+# def get_ef(fp, dfp, ntyp, types):
+#     nat = len(fp)
+#     e = 0.
+#     for i in range(nat):
+#         for j in range(nat):
+#             vij = fp[i] - fp[j]
+#             t = np.dot(vij, vij)
+#             e += t
+
+#     force = np.zeros((nat, 3))
+#     for k in range(nat):
+#         for i in range(nat):
+#             for j in range(nat):
+#                 vij = fp[i] - fp[j]
+#                 dvij = dfp[i][k] - dfp[j][k]
+#                 for l in range(3):
+#                     t = -2 * np.dot(vij, dvij[l])
+#                     force[k][l] += t
+#     return e, force
+
+def get_ef(fp, dfp, ntyp, types):
     nat = len(fp)
     e = 0.
-    for i in range(nat):
-        for j in range(nat):
-            vij = fp[i] - fp[j]
-            t = np.dot(vij, vij)
-            e += t
-
-    force = np.zeros((nat, 3))
-    for k in range(nat):
+    for ityp in range(ntyp):
+        itype = ityp + 1
+        e0 = 0.
         for i in range(nat):
             for j in range(nat):
-                vij = fp[i] - fp[j]
-                dvij = dfp[i][k] - dfp[j][k]
-                for l in range(3):
-                    t = -2 * np.dot(vij, dvij[l])
-                    force[k][l] += t
+                if types[i] == itype and types[j] == itype:
+                    vij = fp[i] - fp[j]
+                    t = np.dot(vij, vij)
+                    e0 += t
+        # print ("e0", e0)
+        e += e0
+    # print ("e", e)
+
+    force = np.zeros((nat, 3))
+
+    for k in range(nat):
+        for ityp in range(ntyp):
+            itype = ityp + 1
+            for i in range(nat):
+                for j in range(nat):
+                    if  types[i] == itype and types[j] == itype and types[k] == itype:
+                        vij = fp[i] - fp[j]
+                        dvij = dfp[k][i] - dfp[k][j]
+                        for l in range(3):
+                            t = -2 * np.dot(vij, dvij[l])
+                            force[k][l] += t
     return e, force

@@ -256,14 +256,14 @@ class fp_GD_Calculator(Calculator):
             types = fplib3.read_types('POSCAR')
             
         
-        znucl = np.array([3], int)
+        znucl = np.array([12, 13, 8], int)
         fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
                                 contract = False,
-                                ntyp = 1,
+                                ntyp = 3,
                                 nx = 100,
                                 lmax = 0,
-                                cutoff = 6.0)
-        e,f = fplib3.get_ef(fp, dfp)
+                                cutoff = 5.0)
+        e,f = fplib3.get_ef(fp, dfp, 3, types)
         energy = e
         return energy
 
@@ -274,14 +274,14 @@ class fp_GD_Calculator(Calculator):
             rxyz = atoms.get_positions()
             types = fplib3.read_types('POSCAR')
             # self.get_potential_energy(atoms) 
-        znucl = np.array([3], int)
+        znucl = np.array([12, 13, 8], int)
         fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
                                 contract = False,
-                                ntyp = 1,
+                                ntyp = 3,
                                 nx = 100,
                                 lmax = 0,
-                                cutoff = 6.0)
-        e,f = fplib3.get_ef(fp, dfp)
+                                cutoff = 5.0)
+        e,f = fplib3.get_ef(fp, dfp, 3, types)
         forces = f
         return forces
 
