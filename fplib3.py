@@ -388,7 +388,7 @@ def get_ef(fp, dfp, ntyp, types):
                 for j in range(nat):
                     if  types[i] == itype and types[j] == itype and types[k] == itype:
                         vij = fp[i] - fp[j]
-                        dvij = dfp[k][i] - dfp[k][j]
+                        dvij = dfp[i][k] - dfp[j][k]
                         for l in range(3):
                             t = -2 * np.dot(vij, dvij[l])
                             force[k][l] += t
