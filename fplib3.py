@@ -386,7 +386,7 @@ def get_ef(fp, dfp, ntyp, types):
             itype = ityp + 1
             for i in range(nat):
                 for j in range(nat):
-                    if  types[i] == itype and types[j] == itype and types[k] == itype:
+                    if  types[i] == itype and types[j] == itype :
                         vij = fp[i] - fp[j]
                         dvij = dfp[i][k] - dfp[j][k]
                         for l in range(3):
