@@ -394,7 +394,12 @@ def get_ef(fp, dfp, ntyp, types):
                             force[k][l] += t
     return e, force
 
-def get_stress(ntyp, nx, lmax, lat, rxyz, types, znucl, cutoff):
+def get_stress(lat, rxyz, types, znucl,
+               contract = False,
+               ntyp = 1,
+               nx = 100,
+               lmax = 0,
+               cutoff = 6.0):
     pos = np.dot(rxyz, np.linalg.inv(lat))
     rxyz_delta = np.zeros_like(rxyz)
     cell_vol = np.linalg.det(lat)
