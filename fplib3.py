@@ -393,3 +393,46 @@ def get_ef(fp, dfp, ntyp, types):
                             t = -2 * np.dot(vij, dvij[l])
                             force[k][l] += t
     return e, force
+
+def get_stress(ntyp, nx, lmax, lat, rxyz, types, znucl, cutoff):
+    pos = np.dot(rxyz, np.linalg.inv(lat))
+    rxyz_delta = np.zeros_like(rxyz)
+    cell_vol = np.linalg.det(lat)
+    # stress = np.zeros(6)
+    stress = np.zeros((3,3))
+    step_size = 0.1
+    strain_delta_tmp = step_size*np.random.randint(1, 9999, (3, 3))/9999
+    print (strain_delta_tmp)
+    # Make strain tensor symmetric
+    strain_delta = 0.5*(strain_delta_tmp + strain_delta_tmp.T - \
+                        np.diag(np.diag(strain_delta_tmp))) 
+    print (strain_delta)
+    rxyz_ratio = np.diag(np.ones(3))
+    rxyz_ratio_new = rxyz_ratio.copy()
+    for m in range(3):
+        for n in range(3):
+            h = strain_delta[m][n]
+            rxyz_ratio_left = np.diag(np.ones(3))
+            rxyz_ratio_right = np.diag(np.ones(3))
+            rxyz_ratio_left[m][n] = rxyz_ratio[m][n] - h
+            rxyz_ratio_right[m][n] = rxyz_ratio[m][n] + h
+            lat_left = np.multiply(lat, rxyz_ratio_left.T)
+            lat_right = np.multiply(lat, rxyz_ratio_right.T)
+            rxyz_left = np.dot(pos, lat_left)
+            rxyz_right = np.dot(pos, lat_right)
+            fp_left, dfptmp = get_fp(False, False, ntyp, nx, lmax, lat_left, rxyz_left, types, znucl, cutoff)
+            fp_right, dfptmp = get_fp(False, False, ntyp, nx, lmax, lat_right, rxyz_right, types, znucl, cutoff)
+            fp_energy_left = get_fpe(fp_left, ntyp, types)
+            fp_energy_right = get_fpe(fp_right, ntyp, types)
+            # fp_energy_left = get_fp_energy(lat_left, rxyz_left, types, contract, \
+            #                                ntyp, nx, lmax, znucl, cutoff)
+            # fp_energy_right = get_fp_energy(lat_right, rxyz_right, types, contract, \
+            #                                 ntyp, nx, lmax, znucl, cutoff)
+            # print(fp_energy_left, fp_energy_right, h, cell_vol)
+            stress[m][n] = - (fp_energy_right - fp_energy_left)/(2.0*h*cell_vol)
+        #################
+        
+    #################
+    # print (stress)
+    stress = stress.flat[[0, 4, 8, 5, 2, 1]]
+    return stress
