@@ -168,7 +168,8 @@ class fp_GD_Calculator(Calculator):
         
         self.results['energy'] = self.get_potential_energy(atoms)
         self.results['forces'] = self.get_forces(atoms)
-        self.results['stress'] = self.get_stress(atoms)
+        # self.results['stress'] = self.get_stress(atoms)
+        self.results['stress'] = np.zeros(6)
         
     '''
     def check_state(self, atoms, tol = 1e-15):
@@ -368,6 +369,7 @@ class fp_GD_Calculator(Calculator):
         if self.check_restart(atoms) or self._stress is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
+            rxyz = atoms.get_positions()
             pos = atoms.get_scaled_positions()
             znucl = np.array([12, 13, 8], int)
             stress = fplib3.get_stress(lat, rxyz, types, znucl,

@@ -8,7 +8,7 @@ class LinearCombinationCalculator(Calculator):
     """LinearCombinationCalculator for weighted summation of multiple calculators.
     """
 
-    def __init__(self, calcs, weights = None, atoms = None):
+    def __init__(self, calcs, weights, atoms = None):
         """Implementation of sum of calculators.
 
         calcs: list
@@ -35,10 +35,13 @@ class LinearCombinationCalculator(Calculator):
         if not self.implemented_properties:
             raise PropertyNotImplementedError('There are no common property \
                                                implemented for the potentials!')
+        if len(weights) != len(calcs):
+            raise ValueError('The length of the weights must be the same as \
+                              the number of calculators!')
+
         self.calcs = calcs
-        '''
-        if weights is not None:
-            self.weights = weights.copy()
+        self.weights = weights
+        
         '''
         weights = np.ones(len(calcs)).tolist()
         pi_fmax = 1.0
@@ -55,6 +58,7 @@ class LinearCombinationCalculator(Calculator):
 
         # self.calcs = calcs
         self.weights = weights
+        '''
 
     def calculate(self, 
                   atoms = None, 
@@ -113,11 +117,29 @@ class MixedCalculator(LinearCombinationCalculator):
     """
 
     def __init__(self, calc1, calc2):
-        super().__init__([calc1, calc2])
+        self.nonLinear_const = 3
+        self.iter = 0
+        self.iter_max = 10
+        self.weights = [1.0, 1.0]
+        weight1 = self.weights[0]
+        weight2 = self.weights[1]
+        super().__init__([calc1, calc2], [weight1, weight2])
 
-    def set_weights(self, w1, w2):
-        self.weights[0] = w1
+    def set_weights(self, calc1, calc2, atoms):
+        
+        if self.iter == 0:
+            fmax_1 = np.amax(np.absolute(calc1.get_property('forces', atoms)))
+            fmax_2 = np.amax(np.absolute(calc2.get_property('forces', atoms)))
+            self.f_ratio = fmax_1 / fmax_2
+        
+        if self.iter > self.iter_max:
+            w2 = 0.0
+        else:
+            w2 = ((self.iter_max - self.iter) / self.iter_max) \
+                  ** self.nonLinear_const * (self.f_ratio - 0.0)
+        self.weights[0] = 1.0
         self.weights[1] = w2
+        # print("weights=", self.weights)
 
     def calculate(self, 
                   atoms = None, 
@@ -128,7 +150,14 @@ class MixedCalculator(LinearCombinationCalculator):
             with the summed value.
         """
 
+        
         super().calculate(atoms, properties, system_changes)
+        atoms = atoms or self.atoms
+        self.set_weights(self.calcs[0], self.calcs[1], atoms)
+        # if self.weights[1] > 0.0 and self.iter < self.iter_max:
+        # self.set_weights(calc1, calc2)
+        self.iter = self.iter + 1
+            
         if 'energy' in properties:
             energy1 = self.calcs[0].get_property('energy', atoms)
             energy2 = self.calcs[1].get_property('energy', atoms)
@@ -137,12 +166,13 @@ class MixedCalculator(LinearCombinationCalculator):
         if 'forces' in properties:
             force1 = self.calcs[0].get_property('forces', atoms)
             force2 = self.calcs[1].get_property('forces', atoms)
-            self.results['force_contributions'] = (force1, forces2)
+            self.results['force_contributions'] = (force1, force2)
             
         if 'stress' in properties:
             stress1 = self.calcs[0].get_property('stress', atoms)
             stress2 = self.calcs[1].get_property('stress', atoms)
             self.results['stress_contributions'] = (stress1, stress2)
+        
 
     def get_energy_contributions(self, atoms = None):
         """ Return the potential energy from calc1 and calc2 respectively """
@@ -158,6 +188,7 @@ class MixedCalculator(LinearCombinationCalculator):
         """ Return the Cauchy stress tensor from calc1 and calc2 respectively """
         self.calculate(properties = ['stress'], atoms = atoms)
         return self.results['stress_contributions']
+    
 
 
 class SumCalculator(LinearCombinationCalculator):
