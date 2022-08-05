@@ -70,12 +70,12 @@ class fp_GD_Calculator(Calculator):
                  **kwargs
                 ):
 
-        # self._atoms = None
+        self._atoms = None
         self.cell_file = 'POSCAR'
         self.results = {}
         self.restart()
         if atoms is None :
-            atoms = ase.io.read(cell_file)
+            atoms = ase.io.read(self.cell_file)
         self.atoms = atoms
         self.atoms_save = None
 
@@ -170,7 +170,7 @@ class fp_GD_Calculator(Calculator):
         self.results['forces'] = self.get_forces(atoms)
         self.results['stress'] = self.get_stress(atoms)
         
-    
+    '''
     def check_state(self, atoms, tol = 1e-15):
         """Check for system changes since last calculation."""
         def compare_dict(d1, d2):
@@ -197,7 +197,7 @@ class fp_GD_Calculator(Calculator):
                 system_changes.append(param_string)
 
         return system_changes
-    
+    '''
 
     def _store_param_state(self):
         """Store current parameter state"""
@@ -260,7 +260,7 @@ class fp_GD_Calculator(Calculator):
     @property
     def types(self):
         """Direct access to the types array"""
-        return fplib_GD.read_types(self.cell_file)
+        return fplib3.read_types(self.cell_file)
 
     @types.setter
     def types(self, types):
@@ -319,7 +319,7 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
-        if self.check_restart(atoms):
+        if self.check_restart(atoms) or self._energy is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
@@ -342,7 +342,7 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
-        if self.check_restart(atoms):
+        if self.check_restart(atoms) or self._forces is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
@@ -365,7 +365,7 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
-        if self.check_restart(atoms):
+        if self.check_restart(atoms) or self._stress is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             pos = atoms.get_scaled_positions()

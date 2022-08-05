@@ -16,7 +16,7 @@ from ase.calculators.vasp import Vasp
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
 trajfile = 'opt.traj'
-
+'''
 kpoints = writekp.writekp(kgrid=0.04)
 calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp_std', 
               xc = 'PBE', 
@@ -39,26 +39,28 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               npar = 4,
               kpts = kpoints,
               )
+'''
 calc2 = fp_GD_Calculator()
 # calc = MixedCalculator(calc1, calc2)
 # atoms.set_calculator(calc)
+'''
 atoms.calc = calc1
 print ("vasp_energy:\n", atoms.get_potential_energy())
 print ("vasp_forces:\n", atoms.get_forces())
 fmax_1 = np.amax(np.absolute(atoms.get_forces()))
-
+'''
 atoms.calc = calc2
 print ("fp_energy:\n", atoms.get_potential_energy())
 print ("fp_forces:\n", atoms.get_forces())
 fmax_2 = np.amax(np.absolute(atoms.get_forces()))
-
+'''
 f_ratio = fmax_1 / fmax_2
 
 calc = MixedCalculator(calc1, calc2, 1, f_ratio)
 atoms.calc = calc
 print ("mixed_energy:\n", atoms.get_potential_energy())
 print ("mixed_forces:\n", atoms.get_forces())
-
+'''
 ############################## Relaxation type ############################## 
 #     https ://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-optimize      #
 #     https ://wiki.fysik.dtu.dk/ase/ase/constraints.html                   #
@@ -70,8 +72,8 @@ af = atoms
 
 ############################## Relaxation method ##############################\
 
-# opt = BFGS(af, maxstep = 1.e-1, trajectory = trajfile)
-opt = FIRE(af, maxstep = 1.e-1, trajectory = trajfile)
+opt = BFGS(af, maxstep = 1.e-1, trajectory = trajfile)
+# opt = FIRE(af, maxstep = 1.e-1, trajectory = trajfile)
 # opt = LBFGS(af, maxstep = 1.e-1, trajectory = trajfile, memory = 10, use_line_search = True)
 # opt = LBFGS(af, maxstep = 1.e-1, trajectory = trajfile, memory = 10, use_line_search = False)
 # opt = SciPyFminCG(af, maxstep = 1.e-1, trajectory = trajfile)
