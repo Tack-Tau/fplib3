@@ -1,11 +1,8 @@
-import os
-import sys
 import numpy as np
-import f90test
 import fplib3
 import rcovdata
+import ase.io
 
-# from ase.io.vasp import write_vasp
 from ase.atoms import Atoms
 from ase.cell import Cell
 from ase.calculators.calculator import Calculator
@@ -73,10 +70,15 @@ class fp_GD_Calculator(Calculator):
                  **kwargs
                 ):
 
-        self._atoms = None
-        self.energy = None
-        self.forces = None
+        # self._atoms = None
+        self.cell_file = 'POSCAR'
         self.results = {}
+        self.restart()
+        if atoms is None :
+            atoms = ase.io.read(cell_file)
+        self.atoms = atoms
+        self.atoms_save = None
+
         # Initialize parameter dictionaries
         self._store_param_state()  # Initialize an empty parameter state
         
@@ -91,11 +93,31 @@ class fp_GD_Calculator(Calculator):
         """
         changed_parameters = {}
 
+        if 'label' in kwargs:
+            self.label = kwargs.pop('label')
+
+        if 'directory' in kwargs:
+            # str() call to deal with pathlib objects
+            self.directory = str(kwargs.pop('directory'))
+
+        if 'txt' in kwargs:
+            self.txt = kwargs.pop('txt')
+
         if 'atoms' in kwargs:
             atoms = kwargs.pop('atoms')
             self.atoms = atoms  # Resets results
 
+        if 'command' in kwargs:
+            self.command = kwargs.pop('command')
+
         changed_parameters.update(Calculator.set(self, **kwargs))
+        
+        if changed_parameters:
+            self.clear_results()  # We don't want to clear atoms
+        if kwargs:
+            # If we make any changes to Vasp input, we always reset
+            # GenerateVaspInput.set(self, **kwargs)
+            self.results.clear()
 
     def reset(self):
         self.atoms = None
@@ -103,6 +125,20 @@ class fp_GD_Calculator(Calculator):
 
     def clear_results(self):
         self.results.clear()
+
+    def restart(self):
+        self._energy = None
+        self._forces = None
+        self._stress = None
+
+    def check_restart(self, atoms = None):
+        self.atoms = atoms
+        if (self.atoms_save and atoms == self.atoms_save):
+            return False
+        else:
+            self.atoms_save = atoms.copy()
+            self.restart()
+            return True
 
     def calculate(self,
                   atoms = None,
@@ -115,9 +151,9 @@ class fp_GD_Calculator(Calculator):
         """
         # Check for zero-length lattice vectors and PBC
         # and that we actually have an Atoms object.
-        # check_atoms(atoms)
+        check_atoms(atoms)
 
-        # self.clear_results()
+        self.clear_results()
         '''
         if atoms is not None:
             self.atoms = atoms.copy()
@@ -134,7 +170,7 @@ class fp_GD_Calculator(Calculator):
         self.results['forces'] = self.get_forces(atoms)
         self.results['stress'] = self.get_stress(atoms)
         
-    '''
+    
     def check_state(self, atoms, tol = 1e-15):
         """Check for system changes since last calculation."""
         def compare_dict(d1, d2):
@@ -161,7 +197,7 @@ class fp_GD_Calculator(Calculator):
                 system_changes.append(param_string)
 
         return system_changes
-    '''
+    
 
     def _store_param_state(self):
         """Store current parameter state"""
@@ -173,53 +209,93 @@ class fp_GD_Calculator(Calculator):
     
     @property
     def contract(self):
-        """Access the contract in input_params dict"""
+        """Access the contract in default_parameters dict"""
         return self.default_parameters['contract']
 
     @contract.setter
     def contract(self, contract):
-        """Set contract in input_params dict"""
+        """Set contract in default_parameters dict"""
         self.default_parameters['contract'] = contract
 
     @property
     def ntyp(self):
-        """Access the ntyp in input_params dict"""
+        """Access the ntyp in default_parameters dict"""
         return self.default_parameters['ntyp']
 
     @ntyp.setter
     def ntyp(self, ntyp):
-        """Set ntyp in input_params dict"""
+        """Set ntyp in default_parameters dict"""
         self.default_parameters['ntyp'] = ntyp
 
     @property
     def nx(self):
-        """Access the nx in input_params dict"""
+        """Access the nx in default_parameters dict"""
         return self.default_parameters['nx']
 
     @nx.setter
     def nx(self, nx):
-        """Set ntyp in input_params dict"""
+        """Set ntyp in default_parameters dict"""
         self.default_parameters['nx'] = nx
 
     @property
     def lmax(self):
-        """Access the lmax in input_params dict"""
+        """Access the lmax in default_parameters dict"""
         return self.default_parameters['lmax']
 
     @lmax.setter
     def lmax(self, lmax):
-        """Set ntyp in input_params dict"""
+        """Set ntyp in default_parameters dict"""
         self.default_parameters['lmax'] = lmax
 
     @property
     def cutoff(self):
-        """Direct access to the cutoff parameter"""
+        """Access the cutoff in default_parameters dict"""
         return self.default_parameters['cutoff']
 
     @cutoff.setter
     def cutoff(self, cutoff):
-        """Direct access for setting the cutoff parameter"""
-        self.set(cutoff = cutoff)
+        """Set cutoff in default_parameters dict"""
+        self.default_parameters['cutoff'] = cutoff
+    
+    @property
+    def types(self):
+        """Direct access to the types array"""
+        return fplib_GD.read_types(self.cell_file)
+
+    @types.setter
+    def types(self, types):
+        """Direct access for setting the types array"""
+        self.set(types = types)
+    
+    @property
+    def znucl(self):
+        """Direct access to the znucl array"""
+        return np.array([3], int)
+
+    @znucl.setter
+    def znucl(self, znucl):
+        """Direct access for setting the znucl array"""
+        self.set(znucl = znucl)
+    
+    @property
+    def iter_max(self):
+        """Direct access to the iter_max"""
+        return int(1)
+
+    @iter_max.setter
+    def iter_max(self, iter_max):
+        """Direct access for setting the iter_max"""
+        self.set(iter_max = iter_max)
+    
+    @property
+    def step_size(self):
+        """Direct access to the step_size"""
+        return float(1.e-4)
+
+    @step_size.setter
+    def step_size(self, step_size):
+        """Direct access for setting the step_size"""
+        self.set(step_size = step_size)
 
     @property
     def atoms(self):
@@ -235,70 +311,73 @@ class fp_GD_Calculator(Calculator):
                 self.clear_results()
             self._atoms = atoms.copy()
 
-    def check_restart(self, atoms = None, **kwargs):
-        if (
-            self.atoms
-            and np.allclose(self.atoms.cell[:], atoms.cell[:])
-            and np.allclose(self.atoms.get_scaled_positions(), atoms.get_scaled_positions())
-            and self.energy is not None
-            and self.forces is not None
-            # and self.stress is not None
-        ):
-            return False
-        else:
-            return True
-
     def get_potential_energy(self, atoms = None, **kwargs):
+        contract = self.contract
+        ntyp = self.ntyp
+        nx = self.nx
+        lmax = self.lmax
+        cutoff = self.cutoff
+        types = self.types
+        znucl = self.znucl
         if self.check_restart(atoms):
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
-            types = fplib3.read_types('POSCAR')
-            
-        
-        znucl = np.array([12, 13, 8], int)
-        fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
-                                contract = False,
-                                ntyp = 3,
-                                nx = 100,
-                                lmax = 0,
-                                cutoff = 5.0)
-        e,f = fplib3.get_ef(fp, dfp, 3, types)
-        energy = e
-        return energy
+            znucl = np.array([12, 13, 8], int)
+            fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
+                                    contract = contract,
+                                    ntyp = ntyp,
+                                    nx = nx,
+                                    lmax = lmax,
+                                    cutoff = cutoff)
+            e,f = fplib3.get_ef(fp, dfp, ntyp = ntyp, types = types)
+            self._energy = e
+        return self._energy
 
     def get_forces(self, atoms = None, **kwargs):
+        contract = self.contract
+        ntyp = self.ntyp
+        nx = self.nx
+        lmax = self.lmax
+        cutoff = self.cutoff
+        types = self.types
+        znucl = self.znucl
         if self.check_restart(atoms):
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
-            types = fplib3.read_types('POSCAR')
-            # self.get_potential_energy(atoms) 
-        znucl = np.array([12, 13, 8], int)
-        fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
-                                contract = False,
-                                ntyp = 3,
-                                nx = 100,
-                                lmax = 0,
-                                cutoff = 5.0)
-        e,f = fplib3.get_ef(fp, dfp, 3, types)
-        forces = f
-        return forces
+            znucl = np.array([12, 13, 8], int)
+            fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
+                                    contract = contract,
+                                    ntyp = ntyp,
+                                    nx = nx,
+                                    lmax = lmax,
+                                    cutoff = cutoff)
+            e,f = fplib3.get_ef(fp, dfp, ntyp = ntyp, types = types)
+            self._forces = f
+        return self._forces
 
     def get_stress(self, atoms = None, **kwargs):
+        contract = self.contract
+        ntyp = self.ntyp
+        nx = self.nx
+        lmax = self.lmax
+        cutoff = self.cutoff
+        types = self.types
+        znucl = self.znucl
         if self.check_restart(atoms):
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             pos = atoms.get_scaled_positions()
-            types = fplib3.read_types('POSCAR')
-            # self.get_potential_energy(atoms)
-        stress = fplib3.get_stress(lat, rxyz, types, znucl,
-                                   contract = False,
-                                   ntyp = 3,
-                                   nx = 100,
-                                   lmax = 0,
-                                   cutoff = 5.0)
-        return stress
+            znucl = np.array([12, 13, 8], int)
+            stress = fplib3.get_stress(lat, rxyz, types, znucl,
+                                       contract = contract,
+                                       ntyp = ntyp,
+                                       nx = nx,
+                                       lmax = lmax,
+                                       cutoff = cutoff)
+            self._stress = stress
+        return self._stress
 
 ########################################################################################
 ####################### Helper functions for the VASP calculator #######################
