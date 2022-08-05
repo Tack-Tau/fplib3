@@ -28,3 +28,4 @@ ase-sort.dat
 vasp.out
 vasprun.xml
 slurm-*
+log
