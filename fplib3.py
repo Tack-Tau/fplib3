@@ -173,6 +173,7 @@ def get_fpdist_nonperiodic(fp1, fp2):
 # @numba.jit()
 def get_fp(lat, rxyz, types, znucl,
            contract = False,
+           ldfp = False,
            ntyp = 1,
            nx = 100,
            lmax = 0,
@@ -264,22 +265,23 @@ def get_fp(lat, rxyz, types, znucl,
 
         pvec = vecs[0]
         # derivative
-        dgom = get_dgom(gom, amp, damp, rxyz_sphere, alpha, icenter)
-        # print (dgom[0][0][0])
-        dvdr = np.zeros((n_sphere, n_sphere, 3))
-        for iats in range(n_sphere):
-            for iorb in range(n_sphere):
-                vvec = vecs[iorb]
-                for ik in range(3):
-                    matt = dgom[iats][ik]
-                    vv1 = np.matmul(vvec, matt)
-                    vv2 = np.matmul(vv1, np.transpose(vvec))
-                    dvdr[iats][iorb][ik] = vv2
-        for iats in range(n_sphere):
-            iiat = indori[iats]
-            for iorb in range(n_sphere):
-                for ik in range(3):
-                    dfp[iat][iiat][ik][iorb] += dvdr[iats][iorb][ik]
+        if ldfp:
+            dgom = get_dgom(gom, amp, damp, rxyz_sphere, alpha, icenter)
+            # print (dgom[0][0][0])
+            dvdr = np.zeros((n_sphere, n_sphere, 3))
+            for iats in range(n_sphere):
+                for iorb in range(n_sphere):
+                    vvec = vecs[iorb]
+                    for ik in range(3):
+                        matt = dgom[iats][ik]
+                        vv1 = np.dot(vvec, matt)
+                        vv2 = np.dot(vv1, np.transpose(vvec))
+                        dvdr[iats][iorb][ik] = vv2
+            for iats in range(n_sphere):
+                iiat = indori[iats]
+                for iorb in range(n_sphere):
+                    for ik in range(3):
+                        dfp[iat][iiat][ik][iorb] += dvdr[iats][iorb][ik]
 
         # contracted overlap matrix
         if contract:
@@ -299,13 +301,13 @@ def get_fp(lat, rxyz, types, znucl,
 
 
     # print ("n_sphere_min", min(n_sphere_list))
-    # print ("n_shpere_max", max(n_sphere_list)) 
+    # print ("n_shpere_max", max(n_sphere_list))
 
     if contract:
-        sfp = np.array(sfp, float)
+        sfp = np.array(sfp)
         return sfp, dfp
+
     else:
-        lfp = np.array(lfp, float)
         return lfp, dfp
 
 # @numba.jit()
@@ -342,27 +344,7 @@ def get_fpdist(ntyp, types, fp1, fp2, mx=False):
     else:
         return fpd
 
-
-# def get_ef(fp, dfp, ntyp, types):
-#     nat = len(fp)
-#     e = 0.
-#     for i in range(nat):
-#         for j in range(nat):
-#             vij = fp[i] - fp[j]
-#             t = np.dot(vij, vij)
-#             e += t
-
-#     force = np.zeros((nat, 3))
-#     for k in range(nat):
-#         for i in range(nat):
-#             for j in range(nat):
-#                 vij = fp[i] - fp[j]
-#                 dvij = dfp[i][k] - dfp[j][k]
-#                 for l in range(3):
-#                     t = -2 * np.dot(vij, dvij[l])
-#                     force[k][l] += t
-#     return e, force
-
+# @numba.jit()
 def get_ef(fp, dfp, ntyp, types):
     nat = len(fp)
     e = 0.
@@ -386,14 +368,32 @@ def get_ef(fp, dfp, ntyp, types):
             itype = ityp + 1
             for i in range(nat):
                 for j in range(nat):
-                    if  types[i] == itype and types[j] == itype :
+                    if  types[i] == itype and types[j] == itype and types[k] == itype:
                         vij = fp[i] - fp[j]
-                        dvij = dfp[i][k] - dfp[j][k]
+                        dvij = dfp[k][i] - dfp[k][j]
                         for l in range(3):
                             t = -2 * np.dot(vij, dvij[l])
                             force[k][l] += t
     return e, force
 
+
+# @numba.jit()
+def get_fpe(fp, ntyp, types):
+    nat = len(fp)
+    e = 0.
+    for ityp in range(ntyp):
+        itype = ityp + 1
+        e0 = 0.
+        for i in range(nat):
+            for j in range(nat):
+                if types[i] == itype and types[j] == itype:
+                    vij = fp[i] - fp[j]
+                    t = np.dot(vij, vij)
+                    e0 += t
+        e += e0
+    return e
+
+# @numba.jit()
 def get_stress(lat, rxyz, types, znucl,
                contract = False,
                ntyp = 1,
@@ -407,11 +407,11 @@ def get_stress(lat, rxyz, types, znucl,
     stress = np.zeros((3,3))
     step_size = 0.1
     strain_delta_tmp = step_size*np.random.randint(1, 9999, (3, 3))/9999
-    print (strain_delta_tmp)
+    # print (strain_delta_tmp)
     # Make strain tensor symmetric
     strain_delta = 0.5*(strain_delta_tmp + strain_delta_tmp.T - \
                         np.diag(np.diag(strain_delta_tmp))) 
-    print (strain_delta)
+    # print (strain_delta)
     rxyz_ratio = np.diag(np.ones(3))
     rxyz_ratio_new = rxyz_ratio.copy()
     for m in range(3):
@@ -425,8 +425,11 @@ def get_stress(lat, rxyz, types, znucl,
             lat_right = np.multiply(lat, rxyz_ratio_right.T)
             rxyz_left = np.dot(pos, lat_left)
             rxyz_right = np.dot(pos, lat_right)
-            fp_left, dfptmp = get_fp(False, False, ntyp, nx, lmax, lat_left, rxyz_left, types, znucl, cutoff)
-            fp_right, dfptmp = get_fp(False, False, ntyp, nx, lmax, lat_right, rxyz_right, types, znucl, cutoff)
+            ldfp = False
+            fp_left, dfptmp = get_fp(lat_left, rxyz_left, types, znucl, \
+                                     contract, ldfp, ntyp, nx, lmax, cutoff)
+            fp_right, dfptmp = get_fp(lat_right, rxyz_right, types, znucl, \
+                                      contract, ldfp, ntyp, nx, lmax, cutoff)
             fp_energy_left = get_fpe(fp_left, ntyp, types)
             fp_energy_right = get_fpe(fp_right, ntyp, types)
             # fp_energy_left = get_fp_energy(lat_left, rxyz_left, types, contract, \

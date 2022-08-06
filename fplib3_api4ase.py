@@ -168,8 +168,8 @@ class fp_GD_Calculator(Calculator):
         
         self.results['energy'] = self.get_potential_energy(atoms)
         self.results['forces'] = self.get_forces(atoms)
-        # self.results['stress'] = self.get_stress(atoms)
-        self.results['stress'] = np.zeros(6)
+        self.results['stress'] = self.get_stress(atoms)
+        # self.results['stress'] = np.zeros(6)
         
     '''
     def check_state(self, atoms, tol = 1e-15):
@@ -325,14 +325,15 @@ class fp_GD_Calculator(Calculator):
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
             znucl = np.array([12, 13, 8], int)
-            fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
-                                    contract = contract,
-                                    ntyp = ntyp,
-                                    nx = nx,
-                                    lmax = lmax,
-                                    cutoff = cutoff)
-            e,f = fplib3.get_ef(fp, dfp, ntyp = ntyp, types = types)
-            self._energy = e
+            fp, _ = fplib3.get_fp(lat, rxyz, types, znucl,
+                                  contract = contract,
+                                  ldfp = False,
+                                  ntyp = ntyp,
+                                  nx = nx,
+                                  lmax = lmax,
+                                  cutoff = cutoff)
+            fpe = fplib3.get_fpe(fp, ntyp = ntyp, types = types)
+            self._energy = fpe
         return self._energy
 
     def get_forces(self, atoms = None, **kwargs):
@@ -350,12 +351,13 @@ class fp_GD_Calculator(Calculator):
             znucl = np.array([12, 13, 8], int)
             fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
                                     contract = contract,
+                                    ldfp = True,
                                     ntyp = ntyp,
                                     nx = nx,
                                     lmax = lmax,
                                     cutoff = cutoff)
-            e,f = fplib3.get_ef(fp, dfp, ntyp = ntyp, types = types)
-            self._forces = f
+            fpe,fpf = fplib3.get_ef(fp, dfp, ntyp = ntyp, types = types)
+            self._forces = fpf
         return self._forces
 
     def get_stress(self, atoms = None, **kwargs):

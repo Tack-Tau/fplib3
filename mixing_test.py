@@ -74,9 +74,9 @@ print ("mixed_forces:\n", atoms.get_forces())
 #     https ://wiki.fysik.dtu.dk/ase/ase/constraints.html                   #
 #############################################################################
 
-af = atoms
+# af = atoms
 # af = StrainFilter(atoms)
-# af = UnitCellFilter(atoms)
+af = UnitCellFilter(atoms)
 
 ############################## Relaxation method ##############################\
 
@@ -87,7 +87,7 @@ opt = BFGS(af, maxstep = 1.e-1, trajectory = trajfile)
 # opt = SciPyFminCG(af, maxstep = 1.e-1, trajectory = trajfile)
 # opt = SciPyFminBFGS(af, maxstep = 1.e-1, trajectory = trajfile)
 
-opt.run(fmax = 1.e-3)
+opt.run(fmax = 1.e-5)
 
 traj = Trajectory(trajfile)
 ase.io.write('opt.vasp', traj[-1], direct = True, long_format=True, vasp5 = True)
