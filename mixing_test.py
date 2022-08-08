@@ -12,7 +12,7 @@ from fplib3_api4ase import fp_GD_Calculator
 from fplib3_mixing import MixedCalculator
 # from ase.calculators.mixing import MixedCalculator
 # from ase.calculators.vasp import Vasp
-from ase.calculators.lj import LennardJones
+# from ase.calculators.lj import LennardJones
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
@@ -43,18 +43,22 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               )
 '''
 
-calc1 = LennardJones()
-calc1.parameters.epsilon = 1.0
-calc1.parameters.sigma = 2.6
-calc1.parameters.rc = 12.0
+# calc1 = LennardJones()
+# calc1.parameters.epsilon = 1.0
+# calc1.parameters.sigma = 2.6
+# calc1.parameters.rc = 12.0
+
+from quippy.potential import Potential
+
+calc1 = Potential(param_filename='./gp_iter6_sparse9k.xml')
 
 calc2 = fp_GD_Calculator()
 # calc = MixedCalculator(calc1, calc2)
 # atoms.set_calculator(calc)
 
 atoms.calc = calc1
-print ("lj_energy:\n", atoms.get_potential_energy())
-print ("lj_forces:\n", atoms.get_forces())
+print ("GAP_energy:\n", atoms.get_potential_energy())
+print ("GAP_forces:\n", atoms.get_forces())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
 atoms.calc = calc2
