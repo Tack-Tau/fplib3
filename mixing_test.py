@@ -58,7 +58,7 @@ calc2 = fp_GD_Calculator(
 			znucl = np.array([14], int),
 			lmax = 0,
 			nx = 300,
-			ntype = 1
+			ntyp = 1
 			)
 # calc = MixedCalculator(calc1, calc2)
 # atoms.set_calculator(calc)

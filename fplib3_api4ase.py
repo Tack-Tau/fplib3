@@ -73,6 +73,7 @@ class fp_GD_Calculator(Calculator):
         self._atoms = None
         self.cell_file = 'POSCAR'
         self.results = {}
+        self.default_parameters = {}
         self.restart()
         if atoms is None :
             atoms = ase.io.read(self.cell_file)
@@ -111,6 +112,7 @@ class fp_GD_Calculator(Calculator):
             self.command = kwargs.pop('command')
 
         changed_parameters.update(Calculator.set(self, **kwargs))
+        self.default_parameters.update(Calculator.set(self, **kwargs))
         
         if changed_parameters:
             self.clear_results()  # We don't want to clear atoms
@@ -319,6 +321,15 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
+        '''
+        print("contract=", contract,
+              "ntyp=", ntyp,
+              "nx=", nx,
+              "lmax=", lmax,
+              "cutoff=", cutoff,
+              "types=", types,
+              "znucl=", znucl)
+        '''
         if self.check_restart(atoms) or self._energy is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
@@ -342,6 +353,15 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
+        '''
+        print("contract=", contract,
+              "ntyp=", ntyp,
+              "nx=", nx,
+              "lmax=", lmax,
+              "cutoff=", cutoff,
+              "types=", types,
+              "znucl=", znucl)
+        '''
         if self.check_restart(atoms) or self._forces is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
@@ -365,6 +385,15 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
+        '''
+        print("contract=", contract,
+              "ntyp=", ntyp,
+              "nx=", nx,
+              "lmax=", lmax,
+              "cutoff=", cutoff,
+              "types=", types,
+              "znucl=", znucl)
+        '''
         if self.check_restart(atoms) or self._stress is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
