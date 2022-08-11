@@ -114,9 +114,8 @@ class fp_GD_Calculator(Calculator):
         
         if changed_parameters:
             self.clear_results()  # We don't want to clear atoms
-        if kwargs:
-            # If we make any changes to Vasp input, we always reset
-            # GenerateVaspInput.set(self, **kwargs)
+        for key in kwargs:
+            self.default_parameters[key] = kwargs[key]
             self.results.clear()
 
     def reset(self):
