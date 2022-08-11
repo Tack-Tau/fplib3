@@ -12,7 +12,7 @@ from fplib3_api4ase import fp_GD_Calculator
 from fplib3_mixing import MixedCalculator
 # from ase.calculators.mixing import MixedCalculator
 # from ase.calculators.vasp import Vasp
-# from ase.calculators.lj import LennardJones
+from ase.calculators.lj import LennardJones
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
@@ -52,7 +52,14 @@ from quippy.potential import Potential
 
 calc1 = Potential(param_filename='./gp_iter6_sparse9k.xml')
 
-calc2 = fp_GD_Calculator()
+calc2 = fp_GD_Calculator(
+			cutoff = 6.0,
+			contract = False,
+			znucl = np.array([14], int),
+			lmax = 0,
+			nx = 300,
+			ntype = 1
+			)
 # calc = MixedCalculator(calc1, calc2)
 # atoms.set_calculator(calc)
 

@@ -60,7 +60,7 @@ class fp_GD_Calculator(Calculator):
                           'ntyp': 1,
                           'nx': 300,
                           'lmax': 0,
-                          'cutoff': 6.0,
+                          'cutoff': 4.0,
                           }
     
     nolabel = True
@@ -271,7 +271,7 @@ class fp_GD_Calculator(Calculator):
     @property
     def znucl(self):
         """Direct access to the znucl array"""
-        return np.array([3], int)
+        return np.array([14], int)
 
     @znucl.setter
     def znucl(self, znucl):
@@ -324,7 +324,6 @@ class fp_GD_Calculator(Calculator):
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
-            znucl = np.array([12, 13, 8], int)
             fp, _ = fplib3.get_fp(lat, rxyz, types, znucl,
                                   contract = contract,
                                   ldfp = False,
@@ -348,7 +347,6 @@ class fp_GD_Calculator(Calculator):
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
-            znucl = np.array([12, 13, 8], int)
             fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
                                     contract = contract,
                                     ldfp = True,
@@ -373,7 +371,6 @@ class fp_GD_Calculator(Calculator):
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
             pos = atoms.get_scaled_positions()
-            znucl = np.array([12, 13, 8], int)
             stress = fplib3.get_stress(lat, rxyz, types, znucl,
                                        contract = contract,
                                        ntyp = ntyp,
