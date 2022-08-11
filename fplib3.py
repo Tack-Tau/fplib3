@@ -172,12 +172,12 @@ def get_fpdist_nonperiodic(fp1, fp2):
 
 # @numba.jit()
 def get_fp(lat, rxyz, types, znucl,
-           contract = False,
-           ldfp = False,
-           ntyp = 1,
-           nx = 100,
-           lmax = 0,
-           cutoff = 6.0):
+           contract,
+           ldfp,
+           ntyp,
+           nx,
+           lmax,
+           cutoff):
     if lmax == 0:
         lseg = 1
         l = 1
@@ -395,11 +395,11 @@ def get_fpe(fp, ntyp, types):
 
 # @numba.jit()
 def get_stress(lat, rxyz, types, znucl,
-               contract = False,
-               ntyp = 1,
-               nx = 100,
-               lmax = 0,
-               cutoff = 6.0):
+               contract,
+               ntyp,
+               nx,
+               lmax,
+               cutoff):
     pos = np.dot(rxyz, np.linalg.inv(lat))
     rxyz_delta = np.zeros_like(rxyz)
     cell_vol = np.linalg.det(lat)
