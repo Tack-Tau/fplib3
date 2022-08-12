@@ -17,7 +17,14 @@ atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
 trajfile = 'opt.traj'
 
-calc = fp_GD_Calculator()
+calc = fp_GD_Calculator(
+			cutoff = 6.0,
+			contract = False,
+			znucl = np.array([3], int),
+			lmax = 0,
+			nx = 300,
+			ntyp = 1
+			)
 atoms.calc = calc
 print ("fp_energy:\n", atoms.get_potential_energy())
 print ("fp_forces:\n", atoms.get_forces())

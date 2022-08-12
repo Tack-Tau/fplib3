@@ -12,7 +12,7 @@ from fplib3_api4ase import fp_GD_Calculator
 from fplib3_mixing import MixedCalculator
 # from ase.calculators.mixing import MixedCalculator
 # from ase.calculators.vasp import Vasp
-from ase.calculators.lj import LennardJones
+# from ase.calculators.lj import LennardJones
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
