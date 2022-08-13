@@ -173,7 +173,7 @@ class fp_GD_Calculator(Calculator):
         self.results['stress'] = self.get_stress(atoms)
         # self.results['stress'] = np.zeros(6)
         
-    '''
+    
     def check_state(self, atoms, tol = 1e-15):
         """Check for system changes since last calculation."""
         def compare_dict(d1, d2):
@@ -190,22 +190,24 @@ class fp_GD_Calculator(Calculator):
             return True
 
         # First we check for default changes
-        system_changes = Calculator.check_state(self, atoms, tol=tol)
+        system_changes = Calculator.check_state(self, atoms, tol = tol)
 
+        '''
         # We now check if we have made any changes to the input parameters
         # XXX: Should we add these parameters to all_changes?
         for param_string, old_dict in self.param_state.items():
             param_dict = getattr(self, param_string)  # Get current param dict
             if not compare_dict(param_dict, old_dict):
                 system_changes.append(param_string)
+        '''
 
         return system_changes
-    '''
+    
 
     def _store_param_state(self):
         """Store current parameter state"""
         self.param_state = dict(
-            default_parameters=self.default_parameters.copy()
+            default_parameters = self.default_parameters.copy()
             )
 
     # Below defines some functions for faster access to certain common keywords
@@ -263,7 +265,7 @@ class fp_GD_Calculator(Calculator):
     @property
     def znucl(self):
         """Access the znucl array in default_parameters dict"""
-        return self.default_parameters['znucl'] = znucl
+        return self.default_parameters['znucl']
 
     @znucl.setter
     def znucl(self, znucl):
@@ -280,26 +282,7 @@ class fp_GD_Calculator(Calculator):
         """Direct access for setting the types array"""
         self.set(types = types)
 
-    @property
-    def iter_max(self):
-        """Direct access to the iter_max"""
-        return int(1)
-
-    @iter_max.setter
-    def iter_max(self, iter_max):
-        """Direct access for setting the iter_max"""
-        self.set(iter_max = iter_max)
     
-    @property
-    def step_size(self):
-        """Direct access to the step_size"""
-        return float(1.e-4)
-
-    @step_size.setter
-    def step_size(self, step_size):
-        """Direct access for setting the step_size"""
-        self.set(step_size = step_size)
-
     @property
     def atoms(self):
         return self._atoms
@@ -313,6 +296,7 @@ class fp_GD_Calculator(Calculator):
             if self.check_state(atoms):
                 self.clear_results()
             self._atoms = atoms.copy()
+    
 
     def get_potential_energy(self, atoms = None, **kwargs):
         contract = self.contract
@@ -323,7 +307,8 @@ class fp_GD_Calculator(Calculator):
         types = self.types
         znucl = self.znucl
         '''
-        print("contract=", contract,
+        print("fp_energy parameters=\n",
+              "contract=", contract,
               "ntyp=", ntyp,
               "nx=", nx,
               "lmax=", lmax,
@@ -355,7 +340,8 @@ class fp_GD_Calculator(Calculator):
         types = self.types
         znucl = self.znucl
         '''
-        print("contract=", contract,
+        print("fp_forces parameters=\n",
+              "contract=", contract,
               "ntyp=", ntyp,
               "nx=", nx,
               "lmax=", lmax,
@@ -387,7 +373,8 @@ class fp_GD_Calculator(Calculator):
         types = self.types
         znucl = self.znucl
         '''
-        print("contract=", contract,
+        print("fp_stress parameters=\n",
+              "contract=", contract,
               "ntyp=", ntyp,
               "nx=", nx,
               "lmax=", lmax,
