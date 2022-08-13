@@ -184,15 +184,18 @@ def get_fp(lat, rxyz, types, znucl,
     else:
         lseg = 4
         l = 2
-    ixyz = get_ixyz(lat, cutoff)
+
+    #Modified so that now a float is returned and converted into an int
+    ixyzf = get_ixyz(lat, cutoff)
+    ixyz = int(ixyzf) + 1
     NC = 2
     wc = cutoff / np.sqrt(2.* NC)
     fc = 1.0 / (2.0 * NC * wc**2)
     nat = len(rxyz)
-    cutoff2 = cutoff**2 
-    
+    cutoff2 = cutoff**2
+
     n_sphere_list = []
-    lfp = []
+    lfp = np.empty((nat,lseg*nx))
     sfp = []
     dfp = np.zeros((nat, nat, 3, lseg*nx))
     for iat in range(nat):
@@ -206,7 +209,10 @@ def get_fp(lat, rxyz, types, znucl,
         xi, yi, zi = rxyz[iat]
         n_sphere = 0
         for jat in range(nat):
-            rcovj = rcovdata.rcovdata[znucl[types[jat]-1]][2]
+            rcovjur = rcovdata.rcovdata
+            index11 = int(types[jat] - 1)
+            index1 = int(znucl[index11])
+            rcovj = rcovjur[index1][2]
             for ix in range(-ixyz, ixyz+1):
                 for iy in range(-ixyz, ixyz+1):
                     for iz in range(-ixyz, ixyz+1):
@@ -227,7 +233,7 @@ def get_fp(lat, rxyz, types, znucl,
                             # amp.append(1.0)
                             # print (1.0-d2*fc)**NC
                             rxyz_sphere.append([xj, yj, zj])
-                            rcov_sphere.append(rcovdata.rcovdata[znucl[types[jat]-1]][2]) 
+                            rcov_sphere.append(rcovj)
                             alpha.append(0.5 / rcovj**2)
                             if jat == iat and ix == 0 and iy == 0 and iz == 0:
                                 ityp_sphere = 0
@@ -241,12 +247,12 @@ def get_fp(lat, rxyz, types, znucl,
                                     # print il+lseg*(n_sphere-1)
                                     ind[il+lseg*(n_sphere-1)] = ityp_sphere * l
                                 else:
-                                    ind[il+lseg*(n_sphere-1)] == ityp_sphere * l + 1
+                                    ind[il+lseg*(n_sphere-1)] = ityp_sphere * l + 1
         n_sphere_list.append(n_sphere)
-        rxyz_sphere = np.array(rxyz_sphere, float)
+        rxyz_sphere = np.array(rxyz_sphere)
         # full overlap matrix
         nid = lseg * n_sphere
-        gom, mamp = get_gom(lseg, rxyz_sphere, alpha, amp)
+        (gom, mamp) = get_gom(lseg, rxyz_sphere, alpha, amp)
         gomamp = gom * mamp
         val, vec = np.linalg.eigh(gomamp)
         # val = np.real(val)
@@ -255,7 +261,8 @@ def get_fp(lat, rxyz, types, znucl,
             # print (val[i])
             fp0[i] = val[len(val)-1-i]
         fp0 = fp0/np.linalg.norm(fp0)
-        lfp.append(fp0)
+        np.append(lfp,fp0)
+        lfp[iat] = fp0
         # pvec = np.real(np.transpose(vec)[0])
 
         vectmp = np.transpose(vec)
