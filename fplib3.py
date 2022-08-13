@@ -304,10 +304,11 @@ def get_fp(lat, rxyz, types, znucl,
     # print ("n_shpere_max", max(n_sphere_list))
 
     if contract:
-        sfp = np.array(sfp)
+        sfp = np.array(sfp, float)
         return sfp, dfp
 
     else:
+        lfp = np.array(lfp, float)
         return lfp, dfp
 
 # @numba.jit()
