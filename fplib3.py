@@ -442,8 +442,8 @@ def get_stress(lat, rxyz, types, znucl,
             rxyz_ratio_right = np.diag(np.ones(3))
             rxyz_ratio_left[m][n] = rxyz_ratio[m][n] - h
             rxyz_ratio_right[m][n] = rxyz_ratio[m][n] + h
-            lat_left = np.multiply(lat, rxyz_ratio_left.T)
-            lat_right = np.multiply(lat, rxyz_ratio_right.T)
+            lat_left = np.dot(lat, rxyz_ratio_left)
+            lat_right = np.dot(lat, rxyz_ratio_right)
             rxyz_left = np.dot(pos, lat_left)
             rxyz_right = np.dot(pos, lat_right)
             ldfp = False
