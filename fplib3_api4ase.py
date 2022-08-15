@@ -281,7 +281,6 @@ class fp_GD_Calculator(Calculator):
     def types(self, types):
         """Direct access for setting the types array"""
         self.set(types = types)
-
     
     @property
     def atoms(self):
@@ -320,6 +319,8 @@ class fp_GD_Calculator(Calculator):
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
+            # print("fp_energy lat=\n", lat)
+            # print("fp_energy rxyz=\n", rxyz)
             fp, _ = fplib3.get_fp(lat, rxyz, types, znucl,
                                   contract = contract,
                                   ldfp = False,
@@ -353,6 +354,8 @@ class fp_GD_Calculator(Calculator):
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
+            # print("fp_forces lat=\n", lat)
+            # print("fp_forces rxyz=\n", rxyz)
             fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
                                     contract = contract,
                                     ldfp = True,
@@ -387,6 +390,9 @@ class fp_GD_Calculator(Calculator):
             lat = atoms.cell[:]
             rxyz = atoms.get_positions()
             pos = atoms.get_scaled_positions()
+            # print("fp_stress lat=\n", lat)
+            # print("fp_stress rxyz=\n", rxyz)
+            # print("fp_stress pos=\n", pos)
             stress = fplib3.get_stress(lat, rxyz, types, znucl,
                                        contract = contract,
                                        ntyp = ntyp,
