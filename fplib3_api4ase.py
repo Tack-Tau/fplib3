@@ -170,8 +170,9 @@ class fp_GD_Calculator(Calculator):
         
         self.results['energy'] = self.get_potential_energy(atoms)
         self.results['forces'] = self.get_forces(atoms)
-        self.results['stress'] = self.get_stress(atoms)
-        # self.results['stress'] = np.zeros(6)
+        # self.results['forces'] = self.calculate_numerical_forces(atoms)
+        # self.results['stress'] = self.get_stress(atoms)
+        self.results['stress'] = self.calculate_numerical_stress(atoms)
         
     
     def check_state(self, atoms, tol = 1e-15):
@@ -367,6 +368,7 @@ class fp_GD_Calculator(Calculator):
             self._forces = fpf
         return self._forces
 
+    '''
     def get_stress(self, atoms = None, **kwargs):
         contract = self.contract
         ntyp = self.ntyp
@@ -375,7 +377,7 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
-        '''
+        
         print("fp_stress parameters=\n",
               "contract=", contract,
               "ntyp=", ntyp,
@@ -384,7 +386,7 @@ class fp_GD_Calculator(Calculator):
               "cutoff=", cutoff,
               "types=", types,
               "znucl=", znucl)
-        '''
+        
         if self.check_restart(atoms) or self._stress is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
@@ -401,6 +403,7 @@ class fp_GD_Calculator(Calculator):
                                        cutoff = cutoff)
             self._stress = stress
         return self._stress
+        '''
 
 ########################################################################################
 ####################### Helper functions for the VASP calculator #######################

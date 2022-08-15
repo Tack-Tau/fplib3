@@ -20,7 +20,7 @@ trajfile = 'opt.traj'
 calc = fp_GD_Calculator(
             cutoff = 6.0,
             contract = False,
-            znucl = np.array([3], int),
+            znucl = np.array([14], int),
             lmax = 0,
             nx = 300,
             ntyp = 1
@@ -34,9 +34,9 @@ print ("fp_forces:\n", atoms.get_forces())
 #     https ://wiki.fysik.dtu.dk/ase/ase/constraints.html                   #
 #############################################################################
 
-af = atoms
+# af = atoms
 # af = StrainFilter(atoms)
-# af = UnitCellFilter(atoms)
+af = UnitCellFilter(atoms)
 
 ############################## Relaxation method ##############################\
 
