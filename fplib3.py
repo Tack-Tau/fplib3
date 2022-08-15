@@ -120,9 +120,29 @@ def get_gom(lseg, rxyz, alpha, amp):
     #     for j in range(len(om)):
     #         if abs(om[i][j] - om[j][i]) > 1e-6:
     #             print ("ERROR", i, j, om[i][j], om[j][i])
-    return om, mamp
+    if check_symmetric(om*mamp) and check_pos_def(om*mamp):
+        return om, mamp
+    else:
+        raise Exception("Gaussian Overlap Matrix is not symmetric and positive definite!")
 
+# @numba.jit()
+def check_symmetric(A, rtol = 1e-05, atol = 1e-08):
+    return np.allclose(A, A.T, rtol = rtol, atol = atol)
 
+# @numba.jit()
+def check_pos_def(A):
+    eps = np.finfo(float).eps
+    B = A + eps*np.identity(len(A))
+    if np.array_equal(B, B.T):
+        try:
+            np.linalg.cholesky(B)
+            return True
+        except np.linalg.LinAlgError:
+            return False
+    else:
+        return False
+
+# @numba.jit()
 def get_dgom(gom, amp, damp, rxyz, alpha, icenter):
     
     # <s|s>
@@ -151,7 +171,6 @@ def get_dgom(gom, amp, damp, rxyz, alpha, icenter):
                 dgom[jat][i][iat][jat] += dj[i]
                 dgom[icenter][i][iat][jat] += dc[i]
     return dgom
-
 
 # @numba.jit()
 def get_fp_nonperiodic(rxyz, znucls):
@@ -223,7 +242,8 @@ def get_fp(lat, rxyz, types, znucl,
                         if d2 <= cutoff2:
                             n_sphere += 1
                             if n_sphere > nx:
-                                print ("FP WARNING: the cutoff is too large.")
+                                raise Exception("FP WARNING: Cutoff radius is too large, \
+                                                increase nx or decrease cutoff.")
                             # amp.append((1.0-d2*fc)**NC)
                             # nd2 = d2/cutoff2
                             ampt = (1.0-d2*fc)**(NC-1)
@@ -376,9 +396,9 @@ def get_ef(fp, dfp, ntyp, types):
             itype = ityp + 1
             for i in range(nat):
                 for j in range(nat):
-                    if  types[i] == itype and types[j] == itype and types[k] == itype:
+                    if  types[i] == itype and types[j] == itype:
                         vij = fp[i] - fp[j]
-                        dvij = dfp[k][i] - dfp[k][j]
+                        dvij = dfp[i][k] - dfp[j][k]
                         for l in range(3):
                             t = -2 * np.dot(vij, dvij[l])
                             force[k][l] += t
@@ -429,8 +449,8 @@ def get_stress(lat, rxyz, types, znucl,
             rxyz_ratio_right = np.diag(np.ones(3))
             rxyz_ratio_left[m][n] = rxyz_ratio[m][n] - h
             rxyz_ratio_right[m][n] = rxyz_ratio[m][n] + h
-            lat_left = np.multiply(lat, rxyz_ratio_left.T)
-            lat_right = np.multiply(lat, rxyz_ratio_right.T)
+            lat_left = np.dot(lat, rxyz_ratio_left)
+            lat_right = np.dot(lat, rxyz_ratio_right)
             rxyz_left = np.dot(pos, lat_left)
             rxyz_right = np.dot(pos, lat_right)
             ldfp = False

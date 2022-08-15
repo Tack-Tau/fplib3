@@ -66,11 +66,13 @@ calc2 = fp_GD_Calculator(
 atoms.calc = calc1
 print ("GAP_energy:\n", atoms.get_potential_energy())
 print ("GAP_forces:\n", atoms.get_forces())
+print ("GAP_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
 atoms.calc = calc2
 print ("fp_energy:\n", atoms.get_potential_energy())
 print ("fp_forces:\n", atoms.get_forces())
+print ("fp_stress:\n", atoms.get_stress())
 # fmax_2 = np.amax(np.absolute(atoms.get_forces()))
 
 # f_ratio = fmax_1 / fmax_2
@@ -79,6 +81,7 @@ calc = MixedCalculator(calc1, calc2)
 atoms.calc = calc
 print ("mixed_energy:\n", atoms.get_potential_energy())
 print ("mixed_forces:\n", atoms.get_forces())
+print ("mixed_stress:\n", atoms.get_stress())
 
 ############################## Relaxation type ############################## 
 #     https ://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-optimize      #
