@@ -28,6 +28,7 @@ calc = fp_GD_Calculator(
 atoms.calc = calc
 print ("fp_energy:\n", atoms.get_potential_energy())
 print ("fp_forces:\n", atoms.get_forces())
+print ("fp_stress:\n", atoms.get_stress())
 
 ############################## Relaxation type ############################## 
 #     https ://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-optimize      #
