@@ -120,9 +120,29 @@ def get_gom(lseg, rxyz, alpha, amp):
     #     for j in range(len(om)):
     #         if abs(om[i][j] - om[j][i]) > 1e-6:
     #             print ("ERROR", i, j, om[i][j], om[j][i])
-    return om, mamp
+    if check_symmetric(om*mamp) and check_pos_def(om*mamp):
+        return om, mamp
+    else:
+        raise Exception("Gaussian Overlap Matrix is not symmetric and positive definite!")
 
+# @numba.jit()
+def check_symmetric(A, rtol = 1e-05, atol = 1e-08):
+    return np.allclose(A, A.T, rtol = rtol, atol = atol)
 
+# @numba.jit()
+def check_pos_def(A):
+    eps = np.finfo(float).eps
+    B = A + eps*np.identity(len(A))
+    if np.array_equal(B, B.T):
+        try:
+            np.linalg.cholesky(B)
+            return True
+        except np.linalg.LinAlgError:
+            return False
+    else:
+        return False
+
+# @numba.jit()
 def get_dgom(gom, amp, damp, rxyz, alpha, icenter):
     
     # <s|s>
@@ -151,7 +171,6 @@ def get_dgom(gom, amp, damp, rxyz, alpha, icenter):
                 dgom[jat][i][iat][jat] += dj[i]
                 dgom[icenter][i][iat][jat] += dc[i]
     return dgom
-
 
 # @numba.jit()
 def get_fp_nonperiodic(rxyz, znucls):
@@ -217,7 +236,8 @@ def get_fp(lat, rxyz, types, znucl,
                         if d2 <= cutoff2:
                             n_sphere += 1
                             if n_sphere > nx:
-                                print ("FP WARNING: the cutoff is too large.")
+                                raise Exception("FP WARNING: Cutoff radius is too large, \
+                                                increase nx or decrease cutoff.")
                             # amp.append((1.0-d2*fc)**NC)
                             # nd2 = d2/cutoff2
                             ampt = (1.0-d2*fc)**(NC-1)
@@ -241,7 +261,7 @@ def get_fp(lat, rxyz, types, znucl,
                                     # print il+lseg*(n_sphere-1)
                                     ind[il+lseg*(n_sphere-1)] = ityp_sphere * l
                                 else:
-                                    ind[il+lseg*(n_sphere-1)] == ityp_sphere * l + 1
+                                    ind[il+lseg*(n_sphere-1)] = ityp_sphere * l + 1
         n_sphere_list.append(n_sphere)
         rxyz_sphere = np.array(rxyz_sphere, float)
         # full overlap matrix
