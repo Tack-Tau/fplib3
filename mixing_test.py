@@ -39,7 +39,7 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               # lplane = False,
               isym = 0,
               npar = 4,
-              kpts = kpoints,
+              kpts = kpoints
               )
 '''
 
