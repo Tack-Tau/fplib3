@@ -30,7 +30,7 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               encut = 520.0,
               ibrion = -1, # No VASP relaxation
               nsw = 0, # Max. no of relaxation steps
-              isif = 0,
+              isif = 3,
               ismear = 0,
               sigma = 0.05,
               potim = 0.2,
