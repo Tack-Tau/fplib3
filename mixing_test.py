@@ -20,17 +20,17 @@ trajfile = 'opt.traj'
 
 '''
 kpoints = writekp.writekp(kgrid=0.04)
-calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp_std', 
-              xc = 'PBE', 
-              setups = 'recommended', 
+calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp_std',
+              xc = 'PBE',
+              setups = 'recommended',
               txt = 'vasp.out',
               prec = 'Accurate',
-              ediff = 1.0e-5,
-              # ediffg = -1.0e-3,
+              # ediff = 1.0e-8,
+              # ediffg = -1.0e-5,
               encut = 520.0,
-              ibrion = 2,
-              isif = 3,
-              nsw = 1,
+              ibrion = -1, # No VASP relaxation
+              nsw = 0, # Max. no of relaxation steps
+              isif = 0,
               ismear = 0,
               sigma = 0.05,
               potim = 0.2,
