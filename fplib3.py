@@ -433,8 +433,8 @@ def get_stress(lat, rxyz, types, znucl,
     cell_vol = np.linalg.det(lat)
     # stress = np.zeros(6)
     stress = np.zeros((3,3))
-    step_size = 0.1
-    strain_delta_tmp = step_size*np.random.randint(1, 9999, (3, 3))/9999
+    step_size = 1.e-4
+    strain_delta_tmp = step_size*(np.random.randint(1, 9999, (3, 3))/9999)
     # print (strain_delta_tmp)
     # Make strain tensor symmetric
     strain_delta = 0.5*(strain_delta_tmp + strain_delta_tmp.T - \
