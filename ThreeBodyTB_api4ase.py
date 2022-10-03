@@ -33,6 +33,9 @@ class ThreeBodyTB_Calculator(Calculator):
     ase_objtype = 'ThreeBodyTB_calculator'  # For JSON storage
     
     # Environment commands
+    # sysimage = "$HOME/.julia/sysimages/sys_threebodytb.so"
+    # Julia_COMMAND = "Julia(runtime='julia', compiled_modules=False, sysimage=sysimage)"
+    
     env_commands = ('Julia_COMMAND', 'ThreeBodyTB_COMMAND', 'ThreeBodyTB_SCRIPT')
 
     implemented_properties = [ 'energy', 'forces', 'stress' ]
@@ -124,11 +127,7 @@ class ThreeBodyTB_Calculator(Calculator):
                         'julia --eval  "using ThreeBodyTB; ThreeBodyTB.compile()"'
                     )
                     pass
-                try:
-                    from julia import ThreeBodyTB as TB
-                except Exception as exp:
-                    print("Julia importing error:", exp)
-                    pass
+                
         return cmd
     
     def set(self, **kwargs):
@@ -199,6 +198,13 @@ class ThreeBodyTB_Calculator(Calculator):
             atoms = self.atoms
         # self.update_atoms(atoms)
         command = self.make_command(self.command)
+        
+        try:
+            from julia import ThreeBodyTB as TB
+        except Exception as exp:
+            print("Julia importing error:", exp)
+            pass
+        
         if self.check_restart(atoms) or \
         self._energy is None or \
         self._forces is None or \
