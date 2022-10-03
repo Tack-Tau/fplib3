@@ -40,6 +40,10 @@ class ThreeBodyTB_Calculator(Calculator):
     
     def __init__(self,
                  atoms = None,
+                 directory = '.',
+                 label = 'ThreeBodyTB',
+                 command = None,
+                 txt='ThreeBodyTB.out',
                  **kwargs
                 ):
         self._atoms = None
@@ -56,12 +60,29 @@ class ThreeBodyTB_Calculator(Calculator):
         # Initialize parameter dictionaries
         self._store_param_state()  # Initialize an empty parameter state
         
+        # Set directory and label
+        self.directory = directory
+        if '/' in label:
+            warn(('Specifying directory in "label" is deprecated, '
+                  'use "directory" instead.'), np.VisibleDeprecationWarning)
+            if self.directory != '.':
+                raise ValueError('Directory redundantly specified though '
+                                 'directory="{}" and label="{}".  '
+                                 'Please omit "/" in label.'.format(
+                                     self.directory, label))
+            self.label = label
+        else:
+            self.prefix = label  # The label should only contain the prefix
+        
         Calculator.__init__(self,
                             atoms = atoms,
                             **kwargs
                            )
         
         self.command = command
+        self._txt = None
+        self.txt = txt  # Set the output txt stream
+        self.version = None
     
     def make_command(self, command=None):
         """Return command if one is passed, otherwise try to find
@@ -73,7 +94,7 @@ class ThreeBodyTB_Calculator(Calculator):
             # Search for the environment commands
             for env in self.env_commands:
                 if env in os.environ:
-                    cmd = os.environ[env]
+                    cmd = os.environ[env].replace('PREFIX', self.prefix)
                     if env == 'ThreeBodyTB_SCRIPT':
                         # Make the system python exe run $ThreeBodyTB_SCRIPT
                         exe = sys.executable
@@ -93,19 +114,20 @@ class ThreeBodyTB_Calculator(Calculator):
                     jlsession = Julia(
                         runtime=julia_cmd, compiled_modules=False, sysimage=sysimage
                     )
-                    jlsession.eval("using Suppressor")  # suppress output
+                    cmd = jlsession.eval("using Suppressor")  # suppress output
                 except Exception:
-                    print("Using non-sysimage version, might be slow.")
+                    print("Local system image of ThreeBodyTB cannot be found, \
+                           recompile the package from scratch, this could be slow.")
                     from julia.api import Julia
                     jl = Julia(compiled_modules=False)
                     cmd = (
-                        'julia --eval  "using ThreeBodyTB; using Plots; ThreeBodyTB.compile()"'
+                        'julia --eval  "using ThreeBodyTB; ThreeBodyTB.compile()"'
                     )
                     pass
                 try:
                     from julia import ThreeBodyTB as TB
                 except Exception as exp:
-                    print("Expjl", exp)
+                    print("Julia importing error:", exp)
                     pass
         return cmd
     
@@ -214,7 +236,21 @@ class ThreeBodyTB_Calculator(Calculator):
             )
         
 
-        
+    # Below defines some functions for faster access to certain common keywords
+    @property
+    def atoms(self):
+        return self._atoms
+
+    @atoms.setter
+    def atoms(self, atoms):
+        if atoms is None:
+            self._atoms = None
+            self.clear_results()
+        else:
+            if self.check_state(atoms):
+                self.clear_results()
+            self._atoms = atoms.copy()
+
 ########################################################################################
 ####################### Helper functions for the VASP calculator #######################
 ########################################################################################
