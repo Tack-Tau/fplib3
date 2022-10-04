@@ -9,7 +9,6 @@ https://pages.nist.gov/ThreeBodyTB.jl/
 import os
 import sys
 import numpy as np
-from julia.api import Julia
 
 import ase.io
 from ase.atoms import Atoms
@@ -109,6 +108,7 @@ class ThreeBodyTB_Calculator(Calculator):
                        'variables (prioritized as follows): {}').format(
                            ', '.join(self.env_commands))
                 try:
+                    from julia.api import Julia
                     sysimage = os.path.join(
                         os.environ["HOME"], ".julia", "sysimages", "sys_threebodytb.so"
                     )
