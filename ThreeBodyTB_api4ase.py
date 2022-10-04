@@ -33,8 +33,8 @@ class ThreeBodyTB_Calculator(Calculator):
     ase_objtype = 'ThreeBodyTB_calculator'  # For JSON storage
     
     # Environment commands
-    # sysimage = "$HOME/.julia/sysimages/sys_threebodytb.so"
-    # Julia_COMMAND = "Julia(runtime='julia', compiled_modules=False, sysimage=sysimage)"
+    # sysimage = '$HOME/.julia/sysimages/sys_threebodytb.so'
+    # Julia_COMMAND = 'Julia(runtime="julia", compiled_modules=False, sysimage=sysimage)'
     
     env_commands = ('Julia_COMMAND', 'ThreeBodyTB_COMMAND', 'ThreeBodyTB_SCRIPT')
 
@@ -119,8 +119,8 @@ class ThreeBodyTB_Calculator(Calculator):
                     )
                     cmd = jlsession.eval("using Suppressor")  # suppress output
                 except Exception:
-                    print("Local system image of ThreeBodyTB cannot be found, \
-                           recompile the package from scratch, this could be slow.")
+                    print("Local system image of ThreeBodyTB cannot be found," \+
+                          "recompile the package from scratch, this could be slow.")
                     from julia.api import Julia
                     jl = Julia(compiled_modules=False)
                     cmd = (
@@ -209,7 +209,7 @@ class ThreeBodyTB_Calculator(Calculator):
         self._energy is None or \
         self._forces is None or \
         self._stress is None:
-            lattice_mat = atoms.cell()
+            lattice_mat = atoms.get_cell()
             frac_coords = atoms.get_scaled_positions()
             elements = atoms.get_chemical_symbols()
             self.tb3_crys = TB.makecrys(lattice_mat, frac_coords, elements)
