@@ -210,7 +210,7 @@ class ThreeBodyTB_Calculator(Calculator):
         self._energy is None or \
         self._forces is None or \
         self._stress is None:
-            lattice_mat = atoms.get_cell()
+            lattice_mat = atoms.cell[:]
             frac_coords = atoms.get_scaled_positions()
             elements = atoms.get_chemical_symbols()
             self.tb3_crys = TB.makecrys(lattice_mat, frac_coords, elements)
