@@ -119,8 +119,8 @@ class ThreeBodyTB_Calculator(Calculator):
                     )
                     cmd = jlsession.eval("using Suppressor")  # suppress output
                 except Exception:
-                    print("Local system image of ThreeBodyTB cannot be found," \+
-                          "recompile the package from scratch, this could be slow.")
+                    print('Local system image of ThreeBodyTB cannot be found, ' \
+                          'recompile the package from scratch, this could be slow.')
                     from julia.api import Julia
                     jl = Julia(compiled_modules=False)
                     cmd = (
