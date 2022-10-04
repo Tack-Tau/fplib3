@@ -119,14 +119,13 @@ class ThreeBodyTB_Calculator(Calculator):
                         runtime=julia_cmd, compiled_modules=False, sysimage=sysimage
                     )
                     cmd = jlsession.eval("using Suppressor")  # suppress output
-                    break
                 except Exception:
                     print('Local system image of ThreeBodyTB cannot be found, ' \
                           'recompile the package from scratch, this could be slow.')
                     from julia.api import Julia
                     jl = Julia(compiled_modules=False)
-                    cmd = jl.eval("using ThreeBodyTB; ThreeBodyTB.compile()")
-                    # pass
+                    cmd = jl.eval("using Suppressor; using ThreeBodyTB; ThreeBodyTB.compile()")
+                    pass
                 
         return cmd
     
@@ -201,10 +200,9 @@ class ThreeBodyTB_Calculator(Calculator):
         
         try:
             from julia import ThreeBodyTB as TB
-            break
         except Exception as exp:
             print("Julia importing error:", exp)
-            # pass
+            pass
         
         if self.check_restart(atoms) or \
         self._energy is None or \
