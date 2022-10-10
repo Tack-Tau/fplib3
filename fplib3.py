@@ -94,7 +94,7 @@ def get_gom(lseg, rxyz, alpha, amp):
 
                 # <p_i | p_j>
                 # stv = -8.0 * rcov[iat] * rcov[jat] * r * r * sji
-                stv = 2.0 * sqrt(t1)/t2 * sij
+                stv = 2.0 * np.sqrt(t1)/t2 * sij
                 sx = -2.0*t1/t2
                 om[4*iat+1][4*jat+1] = stv * (sx * d[0] * d[0] + 1.0) 
                 om[4*iat+1][4*jat+2] = stv * (sx * d[1] * d[0]      ) 
@@ -178,7 +178,8 @@ def get_fp_nonperiodic(rxyz, znucls):
     amp = [1.0] * len(rxyz)
     for x in znucls:
         rcov.append(rcovdata.rcovdata[x][2])
-    gom = get_gom(1, rxyz, rcov, amp)
+    om, mamp = get_gom(1, rxyz, rcov, amp)
+    gom = om*mamp
     fp = np.linalg.eigvals(gom)
     fp = sorted(fp)
     fp = np.array(fp, float)
