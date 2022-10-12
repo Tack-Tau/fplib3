@@ -322,6 +322,14 @@ class fp_GD_Calculator(Calculator):
             rxyz = atoms.get_positions()
             # print("fp_energy lat=\n", lat)
             # print("fp_energy rxyz=\n", rxyz)
+            lat = np.array(lat, dtype = np.float64)
+            rxyz = np.array(rxyz, dtype = np.float64)
+            types = np.int32(types)
+            znucl =  np.int32(znucl)
+            ntyp =  np.int32(ntyp)
+            nx = np.int32(nx)
+            lmax = np.int32(lmax)
+            cutoff = np.float64(cutoff)
             fp, _ = fplib3.get_fp(lat, rxyz, types, znucl,
                                   contract = contract,
                                   ldfp = False,
@@ -357,6 +365,14 @@ class fp_GD_Calculator(Calculator):
             rxyz = atoms.get_positions()
             # print("fp_forces lat=\n", lat)
             # print("fp_forces rxyz=\n", rxyz)
+            lat = np.array(lat, dtype = np.float64)
+            rxyz = np.array(rxyz, dtype = np.float64)
+            types = np.int32(types)
+            znucl =  np.int32(znucl)
+            ntyp =  np.int32(ntyp)
+            nx = np.int32(nx)
+            lmax = np.int32(lmax)
+            cutoff = np.float64(cutoff)
             fp, dfp = fplib3.get_fp(lat, rxyz, types, znucl,
                                     contract = contract,
                                     ldfp = True,
@@ -394,6 +410,14 @@ class fp_GD_Calculator(Calculator):
             # print("fp_stress lat=\n", lat)
             # print("fp_stress rxyz=\n", rxyz)
             # print("fp_stress pos=\n", pos)
+            lat = np.array(lat, dtype = np.float64)
+            rxyz = np.array(rxyz, dtype = np.float64)
+            types = np.int32(types)
+            znucl =  np.int32(znucl)
+            ntyp =  np.int32(ntyp)
+            nx = np.int32(nx)
+            lmax = np.int32(lmax)
+            cutoff = np.float64(cutoff)
             stress = fplib3.get_stress(lat, rxyz, types, znucl,
                                        contract = contract,
                                        ntyp = ntyp,

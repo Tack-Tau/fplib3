@@ -1,9 +1,153 @@
 import numpy as np
-from scipy.optimize import linear_sum_assignment
-import rcovdata
-# import numba
+import numba
+from numba import jit, types, int32, float64
 
-# @numba.jit()
+def get_rcovdata():
+    dat = \
+    [[ 0  , "X" , 1.0],
+    [ 1  , "H"  , 0.37],  
+    [ 2  , "He" , 0.32],  
+    [ 3  , "Li" , 1.34],  
+    [ 4  , "Be" , 0.90],  
+    [ 5  , "B"  , 0.82],  
+    [ 6  , "C"  , 0.77],  
+    [ 7  , "N"  , 0.75],  
+    [ 8  , "O"  , 0.73],  
+    [ 9  , "F"  , 0.71],  
+    [ 10 , "Ne" , 0.69],  
+    [ 11 , "Na" , 1.54],  
+    [ 12 , "Mg" , 1.30],  
+    [ 13 , "Al" , 1.18],  
+    [ 14 , "Si" , 1.11],  
+    [ 15 , "P"  , 1.06],  
+    [ 16 , "S"  , 1.02],  
+    [ 17 , "Cl" , 0.99],  
+    [ 18 , "Ar" , 0.97],  
+    [ 19 , "K"  , 1.96],  
+    [ 20 , "Ca" , 1.74],  
+    [ 21 , "Sc" , 1.44],  
+    [ 22 , "Ti" , 1.36],  
+    [ 23 , "V"  , 1.25],  
+    [ 24 , "Cr" , 1.27],  
+    [ 25 , "Mn" , 1.39],  
+    [ 26 , "Fe" , 1.25],  
+    [ 27 , "Co" , 1.26],  
+    [ 28 , "Ni" , 1.21],  
+    [ 29 , "Cu" , 1.38],  
+    [ 30 , "Zn" , 1.31],  
+    [ 31 , "Ga" , 1.26],  
+    [ 32 , "Ge" , 1.22],  
+    [ 33 , "As" , 1.19],  
+    [ 34 , "Se" , 1.16],  
+    [ 35 , "Br" , 1.14],  
+    [ 36 , "Kr" , 1.10],  
+    [ 37 , "Rb" , 2.11],  
+    [ 38 , "Sr" , 1.92],  
+    [ 39 , "Y"  , 1.62],  
+    [ 40 , "Zr" , 1.48],  
+    [ 41 , "Nb" , 1.37],  
+    [ 42 , "Mo" , 1.45],  
+    [ 43 , "Tc" , 1.56],  
+    [ 44 , "Ru" , 1.26],  
+    [ 45 , "Rh" , 1.35],  
+    [ 46 , "Pd" , 1.31],  
+    [ 47 , "Ag" , 1.53],  
+    [ 48 , "Cd" , 1.48],  
+    [ 49 , "In" , 1.44],  
+    [ 50 , "Sn" , 1.41],  
+    [ 51 , "Sb" , 1.38],  
+    [ 52 , "Te" , 1.35],  
+    [ 53 , "I"  , 1.33],  
+    [ 54 , "Xe" , 1.30],  
+    [ 55 , "Cs" , 2.25],  
+    [ 56 , "Ba" , 1.98],  
+    [ 57 , "La" , 1.80],  
+    [ 58 , "Ce" , 1.63],  
+    [ 59 , "Pr" , 1.76],  
+    [ 60 , "Nd" , 1.74],  
+    [ 61 , "Pm" , 1.73],  
+    [ 62 , "Sm" , 1.72],  
+    [ 63 , "Eu" , 1.68],  
+    [ 64 , "Gd" , 1.69],  
+    [ 56 , "Tb" , 1.68],  
+    [ 66 , "Dy" , 1.67],  
+    [ 67 , "Ho" , 1.66],  
+    [ 68 , "Er" , 1.65],  
+    [ 69 , "Tm" , 1.64],  
+    [ 70 , "Yb" , 1.70],  
+    [ 71 , "Lu" , 1.60],  
+    [ 72 , "Hf" , 1.50],  
+    [ 73 , "Ta" , 1.38],  
+    [ 74 , "W"  , 1.46],  
+    [ 75 , "Re" , 1.59],  
+    [ 76 , "Os" , 1.28],  
+    [ 77 , "Ir" , 1.37],  
+    [ 78 , "Pt" , 1.28],  
+    [ 79 , "Au" , 1.44],  
+    [ 80 , "Hg" , 1.49],  
+    [ 81 , "Tl" , 1.48],  
+    [ 82 , "Pb" , 1.47],  
+    [ 83 , "Bi" , 1.46],  
+    [ 84 , "Po" , 1.45],  
+    [ 85 , "At" , 1.47],  
+    [ 86 , "Rn" , 1.42],  
+    [ 87 , "Fr" , 2.23],  
+    [ 88 , "Ra" , 2.01],  
+    [ 89 , "Ac" , 1.86],  
+    [ 90 , "Th" , 1.75],  
+    [ 91 , "Pa" , 1.69],  
+    [ 92 , "U"  , 1.70],  
+    [ 93 , "Np" , 1.71],  
+    [ 94 , "Pu" , 1.72],  
+    [ 95 , "Am" , 1.66],  
+    [ 96 , "Cm" , 1.66],  
+    [ 97 , "Bk" , 1.68],  
+    [ 98 , "Cf" , 1.68],  
+    [ 99 , "Es" , 1.65],  
+    [ 100, "Fm" , 1.67],  
+    [ 101, "Md" , 1.73],  
+    [ 102, "No" , 1.76],  
+    [ 103, "Lr" , 1.61],  
+    [ 104, "Rf" , 1.57],  
+    [ 105, "Db" , 1.49],  
+    [ 106, "Sg" , 1.43],  
+    [ 107, "Bh" , 1.41],  
+    [ 108, "Hs" , 1.34],  
+    [ 109, "Mt" , 1.29],  
+    [ 110, "Ds" , 1.28],  
+    [ 111, "Rg" , 1.21],  
+    [ 112, "Cn" , 1.22]]
+    
+    return dat
+
+# @jit('(boolean)(float64[:,:], float64, float64)', nopython=True)
+def check_symmetric(A, rtol = 1e-05, atol = 1e-08):
+    return np.allclose(A, A.T, rtol = rtol, atol = atol)
+
+# @jit('(boolean)(float64[:,:])', nopython=True)
+def check_pos_def(A):
+    eps = np.finfo(float).eps
+    B = A + eps*np.identity(len(A))
+    if np.array_equal(B, B.T):
+        try:
+            np.linalg.cholesky(B)
+            return True
+        except np.linalg.LinAlgError:
+            return False
+    else:
+        return False
+
+@jit('(int32)(float64[:,:], float64)', nopython=True)
+def get_ixyz(lat, cutoff):
+    # lat = np.ascontiguousarray(lat)
+    lat2 = np.dot(lat, np.transpose(lat))
+    vec = np.linalg.eigvals(lat2)
+    ixyz = int(np.sqrt(1.0/max(vec))*cutoff) + 1
+    ixyz = np.int32(ixyz)
+    # return np.sqrt(1.0/max(np.linalg.eigvals(np.dot(lat, np.transpose(lat)))))*cutoff + 1
+    return ixyz
+
+# @jit(nopython=True)
 def readvasp(vp):
     buff = []
     with open(vp) as f:
@@ -26,7 +170,7 @@ def readvasp(vp):
     # rxyz = pos
     return lat, rxyz, types
 
-# @numba.jit()
+# @jit(nopython=True)
 def read_types(vp):
     buff = []
     with open(vp) as f:
@@ -43,7 +187,9 @@ def read_types(vp):
     types = np.array(types, int)
     return types
 
-# @numba.jit()
+# @jit('Tuple((float64[:,:], float64[:,:]))(int32, float64[:,:], \
+#       float64[:], float64[:])', nopython=True)
+@jit(nopython=True)
 def get_gom(lseg, rxyz, alpha, amp):
     # s orbital only lseg == 1
     nat = len(rxyz)    
@@ -120,29 +266,17 @@ def get_gom(lseg, rxyz, alpha, amp):
     #     for j in range(len(om)):
     #         if abs(om[i][j] - om[j][i]) > 1e-6:
     #             print ("ERROR", i, j, om[i][j], om[j][i])
+    '''
     if check_symmetric(om*mamp) and check_pos_def(om*mamp):
         return om, mamp
     else:
         raise Exception("Gaussian Overlap Matrix is not symmetric and positive definite!")
+    '''
+    return (om, mamp)
 
-# @numba.jit()
-def check_symmetric(A, rtol = 1e-05, atol = 1e-08):
-    return np.allclose(A, A.T, rtol = rtol, atol = atol)
-
-# @numba.jit()
-def check_pos_def(A):
-    eps = np.finfo(float).eps
-    B = A + eps*np.identity(len(A))
-    if np.array_equal(B, B.T):
-        try:
-            np.linalg.cholesky(B)
-            return True
-        except np.linalg.LinAlgError:
-            return False
-    else:
-        return False
-
-# @numba.jit()
+# @jit('(float64[:,:,:,:])(float64[:,:], float64[:], float64[:], \
+#        float64[:,:], float64[:], int32)', nopython=True)
+@jit(nopython=True)
 def get_dgom(gom, amp, damp, rxyz, alpha, icenter):
     
     # <s|s>
@@ -172,12 +306,13 @@ def get_dgom(gom, amp, damp, rxyz, alpha, icenter):
                 dgom[icenter][i][iat][jat] += dc[i]
     return dgom
 
-# @numba.jit()
+# @jit('(float64[:])(float64[:,:], int32[:])', nopython=True)
 def get_fp_nonperiodic(rxyz, znucls):
     rcov = []
     amp = [1.0] * len(rxyz)
+    rcovdata = get_rcovdata()
     for x in znucls:
-        rcov.append(rcovdata.rcovdata[x][2])
+        rcov.append(rcovdata[x][2])
     om, mamp = get_gom(1, rxyz, rcov, amp)
     gom = om*mamp
     fp = np.linalg.eigvals(gom)
@@ -185,12 +320,13 @@ def get_fp_nonperiodic(rxyz, znucls):
     fp = np.array(fp, float)
     return fp
 
-# @numba.jit()
+# @jit('(float64)(float64[:], float64[:])', nopython=True)
 def get_fpdist_nonperiodic(fp1, fp2):
     d = fp1 - fp2
     return np.sqrt(np.vdot(d, d))
 
-# @numba.jit()
+@jit('Tuple((float64[:,:], float64[:,:,:,:]))(float64[:,:], float64[:,:], int32[:], int32[:], \
+      boolean, boolean, int32, int32, int32, float64)', nopython=True)
 def get_fp(lat, rxyz, types, znucl,
            contract,
            ldfp,
@@ -204,7 +340,121 @@ def get_fp(lat, rxyz, types, znucl,
     else:
         lseg = 4
         l = 2
-
+    
+    rcovdata =  [[ 0 ,  1.0],
+                [ 1  ,  0.37],
+                [ 2  ,  0.32],
+                [ 3  ,  1.34],
+                [ 4  ,  0.90],
+                [ 5  ,  0.82],
+                [ 6  ,  0.77],
+                [ 7  ,  0.75],
+                [ 8  ,  0.73],
+                [ 9  ,  0.71],
+                [ 10 ,  0.69],
+                [ 11 ,  1.54],
+                [ 12 ,  1.30],
+                [ 13 ,  1.18],
+                [ 14 ,  1.11],
+                [ 15 ,  1.06],
+                [ 16 ,  1.02],
+                [ 17 ,  0.99],
+                [ 18 ,  0.97],
+                [ 19 ,  1.96],
+                [ 20 ,  1.74],
+                [ 21 ,  1.44],
+                [ 22 ,  1.36],
+                [ 23 ,  1.25],
+                [ 24 ,  1.27],
+                [ 25 ,  1.39],
+                [ 26 ,  1.25],
+                [ 27 ,  1.26],
+                [ 28 ,  1.21],
+                [ 29 ,  1.38],
+                [ 30 ,  1.31],
+                [ 31 ,  1.26],
+                [ 32 ,  1.22],
+                [ 33 ,  1.19],
+                [ 34 ,  1.16],
+                [ 35 ,  1.14],
+                [ 36 ,  1.10],
+                [ 37 ,  2.11],
+                [ 38 ,  1.92],
+                [ 39 ,  1.62],
+                [ 40 ,  1.48],
+                [ 41 ,  1.37],
+                [ 42 ,  1.45],
+                [ 43 ,  1.56],
+                [ 44 ,  1.26],
+                [ 45 ,  1.35],
+                [ 46 ,  1.31],
+                [ 47 ,  1.53],
+                [ 48 ,  1.48],
+                [ 49 ,  1.44],
+                [ 50 ,  1.41],
+                [ 51 ,  1.38],
+                [ 52 ,  1.35],
+                [ 53 ,  1.33],
+                [ 54 ,  1.30],
+                [ 55 ,  2.25],
+                [ 56 ,  1.98],
+                [ 57 ,  1.80],
+                [ 58 ,  1.63],
+                [ 59 ,  1.76],
+                [ 60 ,  1.74],
+                [ 61 ,  1.73],
+                [ 62 ,  1.72],
+                [ 63 ,  1.68],
+                [ 64 ,  1.69],
+                [ 56 ,  1.68],
+                [ 66 ,  1.67],
+                [ 67 ,  1.66],
+                [ 68 ,  1.65],
+                [ 69 ,  1.64],
+                [ 70 ,  1.70],
+                [ 71 ,  1.60],
+                [ 72 ,  1.50],
+                [ 73 ,  1.38],
+                [ 74 ,  1.46],
+                [ 75 ,  1.59],
+                [ 76 ,  1.28],
+                [ 77 ,  1.37],
+                [ 78 ,  1.28],
+                [ 79 ,  1.44],
+                [ 80 ,  1.49],
+                [ 81 ,  1.48],
+                [ 82 ,  1.47],
+                [ 83 ,  1.46],
+                [ 84 ,  1.45],
+                [ 85 ,  1.47],
+                [ 86 ,  1.42],
+                [ 87 ,  2.23],
+                [ 88 ,  2.01],
+                [ 89 ,  1.86],
+                [ 90 ,  1.75],
+                [ 91 ,  1.69],
+                [ 92 ,  1.70],
+                [ 93 ,  1.71],
+                [ 94 ,  1.72],
+                [ 95 ,  1.66],
+                [ 96 ,  1.66],
+                [ 97 ,  1.68],
+                [ 98 ,  1.68],
+                [ 99 ,  1.65],
+                [ 100,  1.67],
+                [ 101,  1.73],
+                [ 102,  1.76],
+                [ 103,  1.61],
+                [ 104,  1.57],
+                [ 105,  1.49],
+                [ 106,  1.43],
+                [ 107,  1.41],
+                [ 108,  1.34],
+                [ 109,  1.29],
+                [ 110,  1.28],
+                [ 111,  1.21],
+                [ 112,  1.22]]
+    
     #Modified so that now a float is returned and converted into an int
     ixyzf = get_ixyz(lat, cutoff)
     ixyz = int(ixyzf) + 1
@@ -229,10 +479,10 @@ def get_fp(lat, rxyz, types, znucl,
         xi, yi, zi = rxyz[iat]
         n_sphere = 0
         for jat in range(nat):
-            rcovjur = rcovdata.rcovdata
+            rcovjur = rcovdata.copy()
             index11 = int(types[jat] - 1)
             index1 = int(znucl[index11])
-            rcovj = rcovjur[index1][2]
+            rcovj = rcovjur[index1][1]
             for ix in range(-ixyz, ixyz+1):
                 for iy in range(-ixyz, ixyz+1):
                     for iz in range(-ixyz, ixyz+1):
@@ -332,23 +582,17 @@ def get_fp(lat, rxyz, types, znucl,
     # print ("n_shpere_max", max(n_sphere_list))
 
     if contract:
-        sfp = np.array(sfp, float)
+        # sfp = np.array(sfp, dtype = np.float64)
+        # dfp = np.array(dfp, dtype = np.float64)
+        sfp = np.array(sfp)
         return sfp, dfp
 
     else:
-        lfp = np.array(lfp, float)
+        # lfp = np.array(lfp, dtype = np.float64)
+        # dfp = np.array(dfp, dtype = np.float64)
         return lfp, dfp
 
-# @numba.jit()
-def get_ixyz(lat, cutoff):
-    lat2 = np.matmul(lat, np.transpose(lat))
-    # print lat2
-    vec = np.linalg.eigvals(lat2)
-    # print (vec)
-    ixyz = int(np.sqrt(1.0/max(vec))*cutoff) + 1
-    return ixyz
-
-# @numba.jit()
+# @jit(nopython=True)
 def get_fpdist(ntyp, types, fp1, fp2, mx=False):
     nat, lenfp = np.shape(fp1)
     fpd = 0.0
@@ -373,7 +617,7 @@ def get_fpdist(ntyp, types, fp1, fp2, mx=False):
     else:
         return fpd
 
-# @numba.jit()
+# @jit('Tuple((float64, float64))(float64[:], float64[:,:], in32, int32[:])', nopython=True)
 def get_ef(fp, dfp, ntyp, types):
     nat = len(fp)
     e = 0.
@@ -406,7 +650,7 @@ def get_ef(fp, dfp, ntyp, types):
     return e, force
 
 
-# @numba.jit()
+# @jit('(float64)(float64[:], in32, int32[:])', nopython=True)
 def get_fpe(fp, ntyp, types):
     nat = len(fp)
     e = 0.
@@ -422,7 +666,8 @@ def get_fpe(fp, ntyp, types):
         e += e0
     return e
 
-# @numba.jit()
+# @jit('(float64[:])(float64[:,:], float64[:,:], int32[:], int32[:], \
+#       boolean, int32, int32, int32, float64)', nopython=True)
 def get_stress(lat, rxyz, types, znucl,
                contract,
                ntyp,
