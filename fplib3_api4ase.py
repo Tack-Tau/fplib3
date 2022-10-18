@@ -337,6 +337,7 @@ class fp_GD_Calculator(Calculator):
                                   nx = nx,
                                   lmax = lmax,
                                   cutoff = cutoff)
+            fp = np.float64(fp)
             fpe = fplib3.get_fpe(fp, ntyp = ntyp, types = types)
             self._energy = fpe
         return self._energy
@@ -380,7 +381,9 @@ class fp_GD_Calculator(Calculator):
                                     nx = nx,
                                     lmax = lmax,
                                     cutoff = cutoff)
-            fpe,fpf = fplib3.get_ef(fp, dfp, ntyp = ntyp, types = types)
+            fp = np.float64(fp)
+            dfp = np.array(dfp, dtype = np.float64)
+            fpe, fpf = fplib3.get_ef(fp, dfp, ntyp = ntyp, types = types)
             self._forces = fpf
         return self._forces
 

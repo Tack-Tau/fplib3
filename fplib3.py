@@ -139,7 +139,7 @@ def check_pos_def(A):
 
 @jit('(int32)(float64[:,:], float64)', nopython=True)
 def get_ixyz(lat, cutoff):
-    # lat = np.ascontiguousarray(lat)
+    lat = np.ascontiguousarray(lat)
     lat2 = np.dot(lat, np.transpose(lat))
     vec = np.linalg.eigvals(lat2)
     ixyz = int(np.sqrt(1.0/max(vec))*cutoff) + 1
@@ -194,8 +194,8 @@ def get_gom(lseg, rxyz, alpha, amp):
     # s orbital only lseg == 1
     nat = len(rxyz)    
     if lseg == 1:
-        om = np.zeros((nat, nat))
-        mamp = np.zeros((nat, nat))
+        om = np.zeros((nat, nat), dtype = np.float64)
+        mamp = np.zeros((nat, nat), dtype = np.float64)
         for iat in range(nat):
             for jat in range(nat):
                 d = rxyz[iat] - rxyz[jat]
@@ -207,8 +207,8 @@ def get_gom(lseg, rxyz, alpha, amp):
 
     else:
         # for both s and p orbitals
-        om = np.zeros((4*nat, 4*nat))
-        mamp = np.zeros((4*nat, 4*nat))
+        om = np.zeros((4*nat, 4*nat), dtype = np.float64)
+        mamp = np.zeros((4*nat, 4*nat), dtype = np.float64)
         for iat in range(nat):
             for jat in range(nat):
                 d = rxyz[iat] - rxyz[jat]
@@ -281,7 +281,7 @@ def get_dgom(gom, amp, damp, rxyz, alpha, icenter):
     
     # <s|s>
     nat = len(gom)
-    dgom = np.zeros((nat, 3, nat, nat))
+    dgom = np.zeros((nat, 3, nat, nat), dtype = np.float64)
     for jat in range(nat):
         for iat in range(nat):
             d = rxyz[iat] - rxyz[jat]
@@ -465,9 +465,9 @@ def get_fp(lat, rxyz, types, znucl,
     cutoff2 = cutoff**2
 
     n_sphere_list = []
-    lfp = np.empty((nat,lseg*nx))
+    lfp = np.empty((nat,lseg*nx), dtype = np.float64)
     sfp = []
-    dfp = np.zeros((nat, nat, 3, lseg*nx))
+    dfp = np.zeros((nat, nat, 3, lseg*nx), dtype = np.float64)
     for iat in range(nat):
         rxyz_sphere = []
         rcov_sphere = []
@@ -617,7 +617,8 @@ def get_fpdist(ntyp, types, fp1, fp2, mx=False):
     else:
         return fpd
 
-# @jit('Tuple((float64, float64))(float64[:], float64[:,:], in32, int32[:])', nopython=True)
+@jit('Tuple((float64, float64[:,:]))(float64[:,:], float64[:,:,:,:], int32, \
+      int32[:])', nopython=True)
 def get_ef(fp, dfp, ntyp, types):
     nat = len(fp)
     e = 0.
@@ -634,7 +635,7 @@ def get_ef(fp, dfp, ntyp, types):
         e += e0
     # print ("e", e)
 
-    force = np.zeros((nat, 3))
+    force = np.zeros((nat, 3), dtype = np.float64)
 
     for k in range(nat):
         for ityp in range(ntyp):
@@ -650,7 +651,7 @@ def get_ef(fp, dfp, ntyp, types):
     return e, force
 
 
-# @jit('(float64)(float64[:], in32, int32[:])', nopython=True)
+@jit('(float64)(float64[:,:], int32, int32[:])', nopython=True)
 def get_fpe(fp, ntyp, types):
     nat = len(fp)
     e = 0.
@@ -678,9 +679,9 @@ def get_stress(lat, rxyz, types, znucl,
     rxyz_delta = np.zeros_like(rxyz)
     cell_vol = np.linalg.det(lat)
     # stress = np.zeros(6)
-    stress = np.zeros((3,3))
-    step_size = 1.e-4
-    strain_delta_tmp = step_size*(np.random.randint(1, 9999, (3, 3))/9999)
+    stress = np.zeros((3,3), dtype = np.float64)
+    step_size = 1.e-5
+    strain_delta_tmp = step_size*np.random.rand(3,3)
     # print (strain_delta_tmp)
     # Make strain tensor symmetric
     strain_delta = 0.5*(strain_delta_tmp + strain_delta_tmp.T - \
@@ -706,15 +707,12 @@ def get_stress(lat, rxyz, types, znucl,
                                       contract, ldfp, ntyp, nx, lmax, cutoff)
             fp_energy_left = get_fpe(fp_left, ntyp, types)
             fp_energy_right = get_fpe(fp_right, ntyp, types)
-            # fp_energy_left = get_fp_energy(lat_left, rxyz_left, types, contract, \
-            #                                ntyp, nx, lmax, znucl, cutoff)
-            # fp_energy_right = get_fp_energy(lat_right, rxyz_right, types, contract, \
-            #                                 ntyp, nx, lmax, znucl, cutoff)
-            # print(fp_energy_left, fp_energy_right, h, cell_vol)
+            
             stress[m][n] = (fp_energy_right - fp_energy_left)/(2.0*h*cell_vol)
         #################
         
     #################
     # print (stress)
-    stress = stress.flat[[0, 4, 8, 5, 2, 1]]
-    return stress
+    stress_voigt = stress.flat[[0, 4, 8, 5, 2, 1]]
+    stress_voigt = np.array(stress_voigt, dtype = np.float64)
+    return stress_voigt
