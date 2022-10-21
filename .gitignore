@@ -29,5 +29,3 @@ vasp.out
 vasprun.xml
 slurm-*
 log
-fplib3_numba.py
-fplib3_numba_api4ase.py
