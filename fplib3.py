@@ -712,7 +712,6 @@ def get_stress(lat, rxyz, types, znucl,
                                       contract, ldfp, ntyp, nx, lmax, cutoff)
             fp_energy_left = get_fpe(fp_left, ntyp, types)
             fp_energy_right = get_fpe(fp_right, ntyp, types)
-            
             stress[m][n] = (fp_energy_right - fp_energy_left)/(2.0*h*cell_vol)
         #################
         
