@@ -667,15 +667,18 @@ def get_fpe(fp, ntyp, types):
         e += e0
     return e
 
-# @jit('(float64[:])(float64[:,:], float64[:,:], int32[:], int32[:], \
-#       boolean, int32, int32, int32, float64)', nopython=True)
+@jit('(float64[:])(float64[:,:], float64[:,:], int32[:], int32[:], \
+      boolean, int32, int32, int32, float64)', nopython=True)
 def get_stress(lat, rxyz, types, znucl,
                contract,
                ntyp,
                nx,
                lmax,
                cutoff):
+    lat = np.ascontiguousarray(lat)
+    rxyz = np.ascontiguousarray(rxyz)
     pos = np.dot(rxyz, np.linalg.inv(lat))
+    pos = np.ascontiguousarray(pos)
     rxyz_delta = np.zeros_like(rxyz)
     cell_vol = np.linalg.det(lat)
     # stress = np.zeros(6)
@@ -687,15 +690,17 @@ def get_stress(lat, rxyz, types, znucl,
     strain_delta = 0.5*(strain_delta_tmp + strain_delta_tmp.T - \
                         np.diag(np.diag(strain_delta_tmp))) 
     # print (strain_delta)
-    rxyz_ratio = np.diag(np.ones(3))
-    rxyz_ratio_new = rxyz_ratio.copy()
+    rxyz_ratio = np.eye(3, dtype = np.float64)
+    # rxyz_ratio_new = rxyz_ratio.copy()
     for m in range(3):
         for n in range(3):
             h = strain_delta[m][n]
-            rxyz_ratio_left = np.diag(np.ones(3))
-            rxyz_ratio_right = np.diag(np.ones(3))
+            rxyz_ratio_left = np.eye(3, dtype = np.float64)
+            rxyz_ratio_right = np.eye(3, dtype = np.float64)
             rxyz_ratio_left[m][n] = rxyz_ratio[m][n] - h
+            rxyz_ratio_left[n][m] = rxyz_ratio_left[m][n]
             rxyz_ratio_right[m][n] = rxyz_ratio[m][n] + h
+            rxyz_ratio_right[n][m] = rxyz_ratio_right[m][n]
             lat_left = np.dot(lat, rxyz_ratio_left)
             lat_right = np.dot(lat, rxyz_ratio_right)
             rxyz_left = np.dot(pos, lat_left)
@@ -713,6 +718,11 @@ def get_stress(lat, rxyz, types, znucl,
         
     #################
     # print (stress)
-    stress_voigt = stress.flat[[0, 4, 8, 5, 2, 1]]
-    stress_voigt = np.array(stress_voigt, dtype = np.float64)
+    stress_voigt = np.zeros(6, dtype = np.float64)
+    voigt_list = [0, 4, 8, 5, 2, 1]
+    for i in range(6):
+        for j in voigt_list:
+            stress_voigt[i] = stress.ravel()[j]
+    # stress_voigt = stress.flat[[0, 4, 8, 5, 2, 1]]
+    # stress_voigt = np.array(stress_voigt, dtype = np.float64)
     return stress_voigt
