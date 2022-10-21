@@ -531,7 +531,7 @@ def get_fp(lat, rxyz, types, znucl,
         for i in range(len(val)):
             # print (val[i])
             fp0[i] = val[len(val)-1-i]
-        fp0 = fp0/np.linalg.norm(fp0)
+        # fp0 = fp0/np.linalg.norm(fp0)
         np.append(lfp,fp0)
         lfp[iat] = fp0
         # pvec = np.real(np.transpose(vec)[0])
