@@ -281,7 +281,7 @@ def get_fp(lat, rxyz, types, znucl,
         for i in range(len(val)):
             # print (val[i])
             fp0[i] = val[len(val)-1-i]
-        fp0 = fp0/np.linalg.norm(fp0)
+        # fp0 = fp0/np.linalg.norm(fp0)
         np.append(lfp,fp0)
         lfp[iat] = fp0
         # pvec = np.real(np.transpose(vec)[0])
@@ -434,7 +434,7 @@ def get_stress(lat, rxyz, types, znucl,
     cell_vol = np.linalg.det(lat)
     # stress = np.zeros(6)
     stress = np.zeros((3,3))
-    step_size = 1.e-4
+    step_size = 1.e-5
     strain_delta_tmp = step_size*(np.random.randint(1, 9999, (3, 3))/9999)
     # print (strain_delta_tmp)
     # Make strain tensor symmetric
@@ -449,7 +449,9 @@ def get_stress(lat, rxyz, types, znucl,
             rxyz_ratio_left = np.diag(np.ones(3))
             rxyz_ratio_right = np.diag(np.ones(3))
             rxyz_ratio_left[m][n] = rxyz_ratio[m][n] - h
+            rxyz_ratio_left[n][m] = rxyz_ratio_left[m][n]
             rxyz_ratio_right[m][n] = rxyz_ratio[m][n] + h
+            rxyz_ratio_right[n][m] = rxyz_ratio_right[m][n]
             lat_left = np.dot(lat, rxyz_ratio_left)
             lat_right = np.dot(lat, rxyz_ratio_right)
             rxyz_left = np.dot(pos, lat_left)
