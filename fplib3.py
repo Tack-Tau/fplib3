@@ -721,8 +721,7 @@ def get_stress(lat, rxyz, types, znucl,
     stress_voigt = np.zeros(6, dtype = np.float64)
     voigt_list = [0, 4, 8, 5, 2, 1]
     for i in range(6):
-        for j in voigt_list:
-            stress_voigt[i] = stress.ravel()[j]
+        stress_voigt[i] = stress.ravel()[voigt_list[i]]
     # stress_voigt = stress.flat[[0, 4, 8, 5, 2, 1]]
     # stress_voigt = np.array(stress_voigt, dtype = np.float64)
     return stress_voigt
