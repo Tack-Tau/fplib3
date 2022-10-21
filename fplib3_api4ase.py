@@ -1,10 +1,7 @@
 import numpy as np
 import fplib3
-import rcovdata
 import ase.io
-
 from ase.atoms import Atoms
-from ase.cell import Cell
 from ase.calculators.calculator import Calculator
 from ase.calculators.calculator import CalculatorSetupError, all_changes
 
