@@ -224,7 +224,7 @@ class ShiftedForceLennardJones(Calculator):
             for ii in range(n_bin_list[i_atom]):
                 i_neighbors.append(ind2[ii])
                 i_offsets.append(cell_shift.tolist()[ii])
-                if atoms[i_atom].symbol = 'A' and atoms[ind2[ii]].symbol = 'A':
+                if atoms[i_atom].symbol == 'A' and atoms[ind2[ii]].symbol == 'A':
                     epsilon_i = epsilon[0]
                     sigma_i = sigma[0]
                     rc_i = rc[0]
@@ -236,7 +236,7 @@ class ShiftedForceLennardJones(Calculator):
                                                                     sigma = sigma_i,
                                                                     rc = rc_i,
                                                                     ro = ro_i )
-                elif atoms[i_atom].symbol = 'B' and atoms[ind2[ii]].symbol = 'B':
+                elif atoms[i_atom].symbol == 'B' and atoms[ind2[ii]].symbol == 'B':
                     epsilon_i = epsilon[2]
                     sigma_i = sigma[2]
                     rc_i = rc[2]
