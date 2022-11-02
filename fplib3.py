@@ -1,6 +1,7 @@
 import numpy as np
 import numba
 from numba import jit, types, int32, float64
+from scipy.optimize import linear_sum_assignment
 
 def get_rcovdata():
     dat = \
