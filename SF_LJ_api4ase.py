@@ -1,6 +1,6 @@
 import numpy as np
 
-from ase.neighborlist import NeighborList
+from ase.neighborlist import neighbor_list
 from ase.calculators.calculator import Calculator, all_changes
 from ase.stress import full_3x3_to_voigt_6_stress
 
@@ -146,8 +146,8 @@ class ShiftedForceLennardJones(Calculator):
     implemented_properties = ['energy', 'energies', 'forces', 'free_energy']
     implemented_properties += ['stress', 'stresses']  # bulk properties
     default_parameters = {
-        'epsilon': [1.0, 1.0, 1.0],
-        'sigma': [1.0, 1.0, 1.0],
+        'epsilon': [1.00, 1.00, 1.00],
+        'sigma': [1.00, 0.80, 0.88],
         'rc': None,
         'ro': None,
         'smooth': False,
@@ -159,9 +159,9 @@ class ShiftedForceLennardJones(Calculator):
         Parameters
         ----------
         sigma: float
-          The potential minimum is at  2**(1/6) * sigma, default [1.0, 1.0, 1.0]
+          The potential minimum is at  2**(1/6) * sigma, default [1.00, 0.80, 0.88]
         epsilon: float
-          The potential depth, default [1.0, 1.0, 1.0]
+          The potential depth, default [1.00, 1.00, 1.00]
         rc: float, None
           Cut-off for the NeighborList is set to 2.5 * sigma if None.
           The energy is upshifted to be continuous at rc.
@@ -187,8 +187,7 @@ class ShiftedForceLennardJones(Calculator):
 
         if self.parameters.ro is None:
             self.parameters.ro = 0.66 * self.parameters.rc
-
-        self.nl = None
+        
 
     def calculate(
         self,
@@ -212,19 +211,25 @@ class ShiftedForceLennardJones(Calculator):
         energies = np.zeros(natoms)
         forces = np.zeros((natoms, 3))
         stresses = np.zeros((natoms, 3, 3))
+        icount_start = 0
+        icount_end = 0
+        n_bin = 0
         
         ind1, ind2, disp, cell_shift = \
-        neighbor_list('ijdS', atoms, {('A', 'A'): rc[0], ('A', 'B'): rc[1], ('B', 'B'): rc[2]})
+        neighbor_list('ijdS', atoms, {('H', 'H'): rc[0], ('H', 'He'): rc[1], ('He', 'He'): rc[2]})
         
         n_bin_list = np.bincount(ind1)
         
         for i_atom in range(natoms):
-            i_neighbors = []
-            i_offsets = []
+            icount_start += n_bin
+            icount_end = icount_start + n_bin_list[i_atom]
+            n_bin = n_bin_list[i_atom]
+            i_neighbors = ind2[icount_start:icount_end]
+            i_offsets = cell_shift[icount_start:icount_end]
             for ii in range(n_bin_list[i_atom]):
-                i_neighbors.append(ind2[ii])
-                i_offsets.append(cell_shift.tolist()[ii])
-                if atoms[i_atom].symbol == 'A' and atoms[ind2[ii]].symbol == 'A':
+                # i_neighbors.append(ind2[ii])
+                # i_offsets.append(cell_shift.tolist()[ii])
+                if atoms[i_atom].symbol == 'H' and atoms[ind2[ii]].symbol == 'H':
                     epsilon_i = epsilon[0]
                     sigma_i = sigma[0]
                     rc_i = rc[0]
@@ -236,7 +241,7 @@ class ShiftedForceLennardJones(Calculator):
                                                                     sigma = sigma_i,
                                                                     rc = rc_i,
                                                                     ro = ro_i )
-                elif atoms[i_atom].symbol == 'B' and atoms[ind2[ii]].symbol == 'B':
+                elif atoms[i_atom].symbol == 'He' and atoms[ind2[ii]].symbol == 'He':
                     epsilon_i = epsilon[2]
                     sigma_i = sigma[2]
                     rc_i = rc[2]
@@ -289,13 +294,17 @@ class ShiftedForceLennardJones(Calculator):
         epsilon = 1.0,
         sigma = 1.0,
         rc = 2.5,
-        ro = 0.66
+        ro = 1.65
     ):
         
         smooth = self.parameters.smooth
         positions = self.atoms.positions
         cell = self.atoms.cell
         symbols = list(self.atoms.symbols)
+        
+        energy = 0.0
+        forces = np.zeros(3)
+        stress = np.zeros((3,3))
         
         # pointing *towards* neighbours
         distance_vectors = positions[neighbors] - positions[icenter] + np.dot(offsets, cell)
@@ -307,7 +316,7 @@ class ShiftedForceLennardJones(Calculator):
         c6 = (sigma ** 2 / r2) ** 3
         c6[r2 > rc ** 2] = 0.0
         c12 = c6 ** 2
-        c06 = (sigma ** 2 / rc) ** 3
+        c06 = (sigma ** 2 / rc ** 2) ** 3
         c012 = c06 ** 2
 
         if smooth:
@@ -315,10 +324,10 @@ class ShiftedForceLennardJones(Calculator):
             d_cutoff_fn = d_cutoff_function(r2, rc**2, ro**2)
 
         pairwise_energies = 4 * epsilon * (c12 - c6) \
-                          + 4 * epsilon * (6*c012 - 3*c06) * (r2 / rc^2) \
-                          + 4 * epsilon * (- 6*c012 + 3*c06)
+                          + 4 * epsilon * (6 * c012 - 3 * c06) * (r2 / rc ** 2) \
+                          + 4 * epsilon * (- 6 * c012 + 3 * c06)
         pairwise_forces = - 24 * epsilon * (2 * c12 - c6) / r2 \
-                          + 8 * epsilon * (r2^0.5 / rc^2) * (6*c012 - 3*c06) # du_ij
+                          + 8 * epsilon * (6 * c012 - 3 * c06) / (rc ** 2) # du_ij
 
         if smooth:
             # order matters, otherwise the pairwise energy is already modified
@@ -331,9 +340,9 @@ class ShiftedForceLennardJones(Calculator):
 
         pairwise_forces = pairwise_forces[:, np.newaxis] * distance_vectors
 
-        energy = 0.5 * pairwise_energies.sum()  # atomic energies
-        forces = pairwise_forces.sum(axis=0)
-        stress = 0.5 * np.dot( pairwise_forces.T, distance_vectors )  # equivalent to outer product
+        energy += 0.5 * pairwise_energies.sum()  # atomic energies
+        forces += pairwise_forces.sum(axis=0)
+        stress += 0.5 * np.dot( pairwise_forces.T, distance_vectors )  # equivalent to outer product
         
         return energy, forces, stress
 
