@@ -8,17 +8,14 @@ from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from ase.constraints import StrainFilter, UnitCellFilter
 from ase.io.trajectory import Trajectory
 
-from fplib3_api4ase import fp_GD_Calculator
-from fplib3_mixing import MixedCalculator
-# from ase.calculators.mixing import MixedCalculator
-# from ase.calculators.vasp import Vasp
-# from ase.calculators.lj import LennardJones
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
 trajfile = 'opt.traj'
 
 '''
+from ase.calculators.vasp import Vasp
+
 kpoints = writekp.writekp(kgrid=0.04)
 calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp_std',
               xc = 'PBE',
@@ -38,29 +35,40 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               # lcharge = False,
               # lplane = False,
               isym = 0,
+              symprec = 1.0e-7,
               npar = 4,
               kpts = kpoints,
               gamma = True
               )
 '''
 
-# calc1 = LennardJones()
-# calc1.parameters.epsilon = 1.0
-# calc1.parameters.sigma = 2.6
-# calc1.parameters.rc = 12.0
+from SF_LJ_api4ase import ShiftedForceLennardJones
 
+calc1 = ShiftedForceLennardJones()
+calc1.parameters.epsilon = np.array([1.00, 1.50, 0.50])
+calc1.parameters.sigma = np.array([1.00, 0.80, 0.88])
+calc1.parameters.rc = 2.5 * np.array([1.00, 0.80, 0.88])
+
+atoms.calc = calc1
+print ("SFLJ_energy:\n", atoms.get_potential_energy())
+print ("SFLJ_forces:\n", atoms.get_forces())
+print ("SFLJ_stress:\n", atoms.get_stress())
+
+'''
 from quippy.potential import Potential
 
 calc1 = Potential(param_filename='./gp_iter6_sparse9k.xml')
 
+from fplib3_api4ase import fp_GD_Calculator
+
 calc2 = fp_GD_Calculator(
-			cutoff = 6.0,
-			contract = False,
-			znucl = np.array([14], int),
-			lmax = 0,
-			nx = 300,
-			ntyp = 1
-			)
+            cutoff = 6.0,
+            contract = False,
+            znucl = np.array([14], int),
+            lmax = 0,
+            nx = 300,
+            ntyp = 1
+            )
 # calc = MixedCalculator(calc1, calc2)
 # atoms.set_calculator(calc)
 
@@ -69,6 +77,7 @@ print ("GAP_energy:\n", atoms.get_potential_energy())
 print ("GAP_forces:\n", atoms.get_forces())
 print ("GAP_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
+
 
 atoms.calc = calc2
 print ("fp_energy:\n", atoms.get_potential_energy())
@@ -83,6 +92,7 @@ atoms.calc = calc
 print ("mixed_energy:\n", atoms.get_potential_energy())
 print ("mixed_forces:\n", atoms.get_forces())
 print ("mixed_stress:\n", atoms.get_stress())
+'''
 
 ############################## Relaxation type ############################## 
 #     https ://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-optimize      #
@@ -91,7 +101,7 @@ print ("mixed_stress:\n", atoms.get_stress())
 
 # af = atoms
 # af = StrainFilter(atoms)
-af = UnitCellFilter(atoms, scalar_pressure = 0.062415)
+af = UnitCellFilter(atoms, scalar_pressure = 0.0)
 
 ############################## Relaxation method ##############################\
 
