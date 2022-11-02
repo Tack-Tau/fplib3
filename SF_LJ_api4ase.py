@@ -146,8 +146,8 @@ class ShiftedForceLennardJones(Calculator):
     implemented_properties = ['energy', 'energies', 'forces', 'free_energy']
     implemented_properties += ['stress', 'stresses']  # bulk properties
     default_parameters = {
-        'epsilon': [1.00, 1.00, 1.00],
-        'sigma': [1.00, 0.80, 0.88],
+        'epsilon': np.array([1.00, 1.50, 0.50]),
+        'sigma': np.array([1.00, 0.80, 0.88]),
         'rc': None,
         'ro': None,
         'smooth': False,
@@ -159,9 +159,9 @@ class ShiftedForceLennardJones(Calculator):
         Parameters
         ----------
         sigma: float
-          The potential minimum is at  2**(1/6) * sigma, default [1.00, 0.80, 0.88]
+          The potential minimum is at  2**(1/6) * sigma, default np.array([1.00, 0.80, 0.88])
         epsilon: float
-          The potential depth, default [1.00, 1.00, 1.00]
+          The potential depth, default np.array([1.00, 1.50, 0.50])
         rc: float, None
           Cut-off for the NeighborList is set to 2.5 * sigma if None.
           The energy is upshifted to be continuous at rc.
@@ -200,7 +200,8 @@ class ShiftedForceLennardJones(Calculator):
 
         Calculator.calculate(self, atoms, properties, system_changes)
         
-        natoms = len(self.atoms)
+        atoms = self.atoms
+        natoms = len(atoms)
         
         sigma = self.parameters.sigma
         epsilon = self.parameters.epsilon
@@ -216,9 +217,16 @@ class ShiftedForceLennardJones(Calculator):
         n_bin = 0
         
         ind1, ind2, disp, cell_shift = \
-        neighbor_list('ijdS', atoms, {('H', 'H'): rc[0], ('H', 'He'): rc[1], ('He', 'He'): rc[2]})
+        neighbor_list('ijdS', atoms, {('H', 'H'): 0.5*rc[0], \
+                                      ('H', 'He'): 0.5*rc[1], \
+                                      ('He', 'He'): 0.5*rc[2]})
         
         n_bin_list = np.bincount(ind1)
+        
+        epsilon_AA, epsilon_AB, epsilon_BB = epsilon
+        sigma_AA, sigma_AB, sigma_BB = sigma
+        rc_AA, rc_AB, rc_BB = rc
+        ro_AA, ro_AB, ro_BB = ro
         
         for i_atom in range(natoms):
             icount_start += n_bin
@@ -226,54 +234,77 @@ class ShiftedForceLennardJones(Calculator):
             n_bin = n_bin_list[i_atom]
             i_neighbors = ind2[icount_start:icount_end]
             i_offsets = cell_shift[icount_start:icount_end]
+            i_offsets = i_offsets.tolist()
+            # print("i_neighbors", i_neighbors)
+            # print("i_offsets", i_offsets)
             for ii in range(n_bin_list[i_atom]):
-                # i_neighbors.append(ind2[ii])
-                # i_offsets.append(cell_shift.tolist()[ii])
-                if atoms[i_atom].symbol == 'H' and atoms[ind2[ii]].symbol == 'H':
-                    epsilon_i = epsilon[0]
-                    sigma_i = sigma[0]
-                    rc_i = rc[0]
-                    ro_i = ro[0]
-                    energy, forces, stress = self.get_pairwise_efs( icenter = i_atom,
-                                                                    neighbors = i_neighbors,
-                                                                    offsets = np.array(i_offsets)
-                                                                    epsilon = epsilon_i,
-                                                                    sigma = sigma_i,
-                                                                    rc = rc_i,
-                                                                    ro = ro_i )
-                elif atoms[i_atom].symbol == 'He' and atoms[ind2[ii]].symbol == 'He':
-                    epsilon_i = epsilon[2]
-                    sigma_i = sigma[2]
-                    rc_i = rc[2]
-                    ro_i = ro[2]
-                    energy, forces, stress = self.get_pairwise_efs( icenter = i_atom,
-                                                                    neighbors = i_neighbors,
-                                                                    offsets = np.array(i_offsets)
-                                                                    epsilon = epsilon_i,
-                                                                    sigma = sigma_i,
-                                                                    rc = rc_i,
-                                                                    ro = ro_i )
+                AA_neighbors = []
+                BB_neighbors = []
+                AB_neighbors = []
+                AA_offsets = []
+                BB_offsets = []
+                AB_offsets = []
+                
+                if atoms[i_atom].symbol == 'H' and atoms[i_neighbors[ii]].symbol == 'H':
+                    AA_neighbors.append(i_neighbors[ii])
+                    AA_offsets.append(i_offsets[ii])
+                    
+                elif atoms[i_atom].symbol == 'He' and atoms[i_neighbors[ii]].symbol == 'He':
+                    BB_neighbors.append(i_neighbors[ii])
+                    BB_offsets.append(i_offsets[ii])
+                    
                 else:
-                    epsilon_i = epsilon[1]
-                    sigma_i = sigma[1]
-                    rc_i = rc[1]
-                    ro_i = ro[1]
-                    energy, forces, stress = self.get_pairwise_efs( icenter = i_atom,
-                                                                    neighbors = i_neighbors,
-                                                                    offsets = np.array(i_offsets)
-                                                                    epsilon = epsilon_i,
-                                                                    sigma = sigma_i,
-                                                                    rc = rc_i,
-                                                                    ro = ro_i )
+                    AB_neighbors.append(i_neighbors[ii])
+                    AB_offsets.append(i_offsets[ii])
+                    
+            AA_offsets = np.array(AA_offsets)
+            BB_offsets = np.array(BB_offsets)
+            AB_offsets = np.array(AB_offsets)
+            
+            energy = 0.0
+            force = np.zeros(3)
+            stress = np.zeros((3,3))
+            
+            if len(AA_neighbors) > 0:
+                e_AA, f_AA, s_AA = self.get_pairwise_efs( icenter = i_atom,
+                                                          neighbors = AA_neighbors,
+                                                          offsets = AA_offsets,
+                                                          epsilon = epsilon_AA,
+                                                          sigma = sigma_AA,
+                                                          rc = rc_AA,
+                                                          ro = ro_AA )
+                energy += e_AA
+                force += f_AA
+                stress += s_AA
+            
+            if len(BB_neighbors) > 0:
+                e_BB, f_BB, s_BB = self.get_pairwise_efs( icenter = i_atom,
+                                                          neighbors = BB_neighbors,
+                                                          offsets = BB_offsets,
+                                                          epsilon = epsilon_BB,
+                                                          sigma = sigma_BB,
+                                                          rc = rc_BB,
+                                                          ro = ro_BB )
+                energy += e_BB
+                force += f_BB
+                stress += s_BB
+            
+            if len(AB_neighbors) > 0:
+                e_AB, f_AB, s_AB = self.get_pairwise_efs( icenter = i_atom,
+                                                          neighbors = AB_neighbors,
+                                                          offsets = AB_offsets,
+                                                          epsilon = epsilon_AB,
+                                                          sigma = sigma_AB,
+                                                          rc = rc_AB,
+                                                          ro = ro_AB )
+                energy += e_AB
+                force += f_AB
+                stress += s_AB
             
             energies[i_atom] += energy
-            forces[i_atom] += forces
+            forces[i_atom] += force
             stresses[i_atom] += stress
-
-                    
             
-
-
         # no lattice, no stress
         if self.atoms.cell.rank == 3:
             stresses = full_3x3_to_voigt_6_stress(stresses)
@@ -301,10 +332,6 @@ class ShiftedForceLennardJones(Calculator):
         positions = self.atoms.positions
         cell = self.atoms.cell
         symbols = list(self.atoms.symbols)
-        
-        energy = 0.0
-        forces = np.zeros(3)
-        stress = np.zeros((3,3))
         
         # pointing *towards* neighbours
         distance_vectors = positions[neighbors] - positions[icenter] + np.dot(offsets, cell)
@@ -337,12 +364,13 @@ class ShiftedForceLennardJones(Calculator):
             pairwise_energies *= cutoff_fn
         else:
             pairwise_energies -= e0 * (c6 != 0.0)
-
+        
+        
         pairwise_forces = pairwise_forces[:, np.newaxis] * distance_vectors
-
-        energy += 0.5 * pairwise_energies.sum()  # atomic energies
-        forces += pairwise_forces.sum(axis=0)
-        stress += 0.5 * np.dot( pairwise_forces.T, distance_vectors )  # equivalent to outer product
+        
+        energy = 0.5 * pairwise_energies.sum()  # atomic energies
+        forces = pairwise_forces.sum(axis=0)
+        stress = 0.5 * np.dot( pairwise_forces.T, distance_vectors )  # equivalent to outer product
         
         return energy, forces, stress
 
