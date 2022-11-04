@@ -1,5 +1,6 @@
 #!/bin/sh
 #SBATCH --partition main
+#SBATCH --constraint="skylake|cascadelake"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=2GB
