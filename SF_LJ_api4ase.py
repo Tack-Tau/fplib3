@@ -229,6 +229,17 @@ class ShiftedForceLennardJones(Calculator):
         ro_AA, ro_AB, ro_BB = ro
         
         for i_atom in range(natoms):
+            energy = 0.0
+            force = np.zeros(3)
+            stress = np.zeros((3,3))
+            
+            AA_neighbors = []
+            BB_neighbors = []
+            AB_neighbors = []
+            AA_offsets = []
+            BB_offsets = []
+            AB_offsets = []
+            
             icount_start += n_bin
             icount_end = icount_start + n_bin_list[i_atom]
             n_bin = n_bin_list[i_atom]
@@ -238,12 +249,6 @@ class ShiftedForceLennardJones(Calculator):
             # print("i_neighbors", i_neighbors)
             # print("i_offsets", i_offsets)
             for ii in range(n_bin_list[i_atom]):
-                AA_neighbors = []
-                BB_neighbors = []
-                AB_neighbors = []
-                AA_offsets = []
-                BB_offsets = []
-                AB_offsets = []
                 
                 if atoms[i_atom].symbol == 'H' and atoms[i_neighbors[ii]].symbol == 'H':
                     AA_neighbors.append(i_neighbors[ii])
@@ -261,9 +266,7 @@ class ShiftedForceLennardJones(Calculator):
             BB_offsets = np.array(BB_offsets)
             AB_offsets = np.array(AB_offsets)
             
-            energy = 0.0
-            force = np.zeros(3)
-            stress = np.zeros((3,3))
+            
             
             if len(AA_neighbors) > 0:
                 e_AA, f_AA, s_AA = self.get_pairwise_efs( icenter = i_atom,
