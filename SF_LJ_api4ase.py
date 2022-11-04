@@ -217,9 +217,9 @@ class ShiftedForceLennardJones(Calculator):
         n_bin = 0
         
         ind1, ind2, disp, cell_shift = \
-        neighbor_list('ijdS', atoms, {('H', 'H'): 0.5*rc[0], \
-                                      ('H', 'He'): 0.5*rc[1], \
-                                      ('He', 'He'): 0.5*rc[2]})
+        neighbor_list('ijdS', atoms, {('H', 'H'): rc[0], \
+                                      ('H', 'He'): rc[1], \
+                                      ('He', 'He'): rc[2]})
         
         n_bin_list = np.bincount(ind1)
         
