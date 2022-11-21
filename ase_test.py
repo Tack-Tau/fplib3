@@ -1,7 +1,7 @@
 import os
 import sys
 import numpy as np
-import writekp
+# import writekp
 import ase.io
 from ase.optimize import BFGS, LBFGS, BFGSLineSearch, QuasiNewton, FIRE
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
@@ -26,6 +26,10 @@ calc = fp_GD_Calculator(
             ntyp = 1
             )
 atoms.calc = calc
+
+# calc.test_energy_consistency(atoms = atoms)
+# calc.test_force_consistency(atoms = atoms)
+
 print ("fp_energy:\n", atoms.get_potential_energy())
 print ("fp_forces:\n", atoms.get_forces())
 print ("fp_stress:\n", atoms.get_stress())
@@ -37,7 +41,9 @@ print ("fp_stress:\n", atoms.get_stress())
 
 # af = atoms
 # af = StrainFilter(atoms)
-af = UnitCellFilter(atoms)
+# mask = np.ones((3,3), dtype = int) - np.eye(3, dtype = int)
+mask = np.eye(3, dtype = int)
+af = UnitCellFilter(atoms, mask = mask, constant_volume = True, scalar_pressure = 0.0)
 
 ############################## Relaxation method ##############################\
 

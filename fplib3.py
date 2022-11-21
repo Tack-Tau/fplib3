@@ -649,6 +649,7 @@ def get_ef(fp, dfp, ntyp, types):
                         for l in range(3):
                             t = -2 * np.dot(vij, dvij[l])
                             force[k][l] += t
+    force = force - np.sum(force, axis=0)/len(force)
     return e, force
 
 
@@ -707,10 +708,10 @@ def get_stress(lat, rxyz, types, znucl,
             rxyz_left = np.dot(pos, lat_left)
             rxyz_right = np.dot(pos, lat_right)
             ldfp = False
-            fp_left, dfptmp = get_fp(lat_left, rxyz_left, types, znucl, \
-                                     contract, ldfp, ntyp, nx, lmax, cutoff)
-            fp_right, dfptmp = get_fp(lat_right, rxyz_right, types, znucl, \
+            fp_left, dfptmp1 = get_fp(lat_left, rxyz_left, types, znucl, \
                                       contract, ldfp, ntyp, nx, lmax, cutoff)
+            fp_right, dfptmp2 = get_fp(lat_right, rxyz_right, types, znucl, \
+                                       contract, ldfp, ntyp, nx, lmax, cutoff)
             fp_energy_left = get_fpe(fp_left, ntyp, types)
             fp_energy_right = get_fpe(fp_right, ntyp, types)
             stress[m][n] = (fp_energy_right - fp_energy_left)/(2.0*h*cell_vol)
@@ -724,4 +725,65 @@ def get_stress(lat, rxyz, types, znucl,
         stress_voigt[i] = stress.ravel()[voigt_list[i]]
     # stress_voigt = stress.flat[[0, 4, 8, 5, 2, 1]]
     # stress_voigt = np.array(stress_voigt, dtype = np.float64)
+    # return np.zeros(6, dtype = np.float64)
     return stress_voigt
+
+@jit('Tuple((float64, float64))(float64[:,:], float64[:,:], int32[:], int32[:], \
+      boolean, int32, int32, int32, float64)', nopython=True)
+def get_simpson_energy(lat, rxyz, types, znucl,
+                       contract,
+                       ntyp,
+                       nx,
+                       lmax,
+                       cutoff):
+    lat = np.ascontiguousarray(lat)
+    rxyz = np.ascontiguousarray(rxyz)
+    rxyz_delta = np.zeros_like(rxyz)
+    rxyz_disp = np.zeros_like(rxyz)
+    rxyz_left = np.zeros_like(rxyz)
+    rxyz_mid = np.zeros_like(rxyz)
+    rxyz_right = np.zeros_like(rxyz)
+    nat = len(rxyz)
+    del_fpe = 0.0
+    iter_max = 100
+    step_size = 1.e-5
+    rxyz_delta = step_size*( np.random.rand(nat, 3).astype(np.float64) - \
+                            0.5*np.ones((nat, 3), dtype = np.float64) )
+    for i_iter in range(iter_max):
+        # rxyz_delta = step_size*( np.random.rand(nat, 3).astype(np.float64) - \
+        #                         0.5*np.ones((nat, 3), dtype = np.float64) )
+        rxyz_disp += 2.0*rxyz_delta
+        rxyz_left = rxyz.copy() + 2.0*i_iter*rxyz_delta
+        rxyz_mid = rxyz.copy() + 2.0*(i_iter+1)*rxyz_delta
+        rxyz_right = rxyz.copy() + 2.0*(i_iter+2)*rxyz_delta
+        ldfp = True
+        fp_left, dfp_left = get_fp(lat, rxyz_left, types, znucl, \
+                                   contract, ldfp, ntyp, nx, lmax, cutoff)
+        fp_mid, dfp_mid = get_fp(lat, rxyz_mid, types, znucl, \
+                                   contract, ldfp, ntyp, nx, lmax, cutoff)
+        fp_right, dfp_right = get_fp(lat, rxyz_right, types, znucl, \
+                                     contract, ldfp, ntyp, nx, lmax, cutoff)
+        fpe_left, fpf_left = get_ef(fp_left, dfp_left, ntyp, types)
+        fpe_mid, fpf_mid = get_ef(fp_mid, dfp_mid, ntyp, types)
+        fpe_right, fpf_right = get_ef(fp_right, dfp_right, ntyp, types)
+        
+        rxyz_delta = np.ascontiguousarray(rxyz_delta)
+        fpf_left = np.ascontiguousarray(fpf_left)
+        fpf_mid = np.ascontiguousarray(fpf_mid)
+        fpf_right = np.ascontiguousarray(fpf_right)
+        for i_atom in range(nat):
+            del_fpe += ( -np.dot(rxyz_delta[i_atom], fpf_left[i_atom]) - \
+                        4.0*np.dot(rxyz_delta[i_atom], fpf_mid[i_atom]) - \
+                        np.dot(rxyz_delta[i_atom], fpf_right[i_atom]) )/3.0
+        
+    rxyz_final = rxyz + rxyz_disp
+    ldfp = False
+    fp_init, dfptmp1 = get_fp(lat, rxyz, types, znucl, \
+                              contract, ldfp, ntyp, nx, lmax, cutoff)
+    fp_final, dfptmp2 = get_fp(lat, rxyz_final, types, znucl, \
+                               contract, ldfp, ntyp, nx, lmax, cutoff)
+    e_init = get_fpe(fp_init, ntyp, types)
+    e_final = get_fpe(fp_final, ntyp, types)
+    e_diff = e_final - e_init
+    return del_fpe, e_diff
+    

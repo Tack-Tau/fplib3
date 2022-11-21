@@ -303,16 +303,7 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
-        '''
-        print("fp_energy parameters=\n",
-              "contract=", contract,
-              "ntyp=", ntyp,
-              "nx=", nx,
-              "lmax=", lmax,
-              "cutoff=", cutoff,
-              "types=", types,
-              "znucl=", znucl)
-        '''
+        
         if self.check_restart(atoms) or self._energy is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
@@ -338,6 +329,7 @@ class fp_GD_Calculator(Calculator):
             fpe = fplib3.get_fpe(fp, ntyp = ntyp, types = types)
             self._energy = fpe
         return self._energy
+    
 
     def get_forces(self, atoms = None, **kwargs):
         contract = self.contract
@@ -347,16 +339,7 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
-        '''
-        print("fp_forces parameters=\n",
-              "contract=", contract,
-              "ntyp=", ntyp,
-              "nx=", nx,
-              "lmax=", lmax,
-              "cutoff=", cutoff,
-              "types=", types,
-              "znucl=", znucl)
-        '''
+        
         if self.check_restart(atoms) or self._forces is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
@@ -383,6 +366,7 @@ class fp_GD_Calculator(Calculator):
             fpe, fpf = fplib3.get_ef(fp, dfp, ntyp = ntyp, types = types)
             self._forces = fpf
         return self._forces
+    
 
     def get_stress(self, atoms = None, **kwargs):
         contract = self.contract
@@ -392,16 +376,7 @@ class fp_GD_Calculator(Calculator):
         cutoff = self.cutoff
         types = self.types
         znucl = self.znucl
-        '''
-        print("fp_stress parameters=\n",
-              "contract=", contract,
-              "ntyp=", ntyp,
-              "nx=", nx,
-              "lmax=", lmax,
-              "cutoff=", cutoff,
-              "types=", types,
-              "znucl=", znucl)
-        '''
+        
         if self.check_restart(atoms) or self._stress is None:
             # write_vasp('input.vasp', atoms, direct=True)
             lat = atoms.cell[:]
@@ -426,6 +401,65 @@ class fp_GD_Calculator(Calculator):
                                        cutoff = cutoff)
             self._stress = stress
         return self._stress
+    
+
+    def test_energy_consistency(self, atoms = None, **kwargs):
+        contract = self.contract
+        ntyp = self.ntyp
+        nx = self.nx
+        lmax = self.lmax
+        cutoff = self.cutoff
+        types = self.types
+        znucl = self.znucl
+        
+        # write_vasp('input.vasp', atoms, direct=True)
+        lat = atoms.cell[:]
+        rxyz = atoms.get_positions()
+        lat = np.array(lat, dtype = np.float64)
+        rxyz = np.array(rxyz, dtype = np.float64)
+        types = np.int32(types)
+        znucl =  np.int32(znucl)
+        ntyp =  np.int32(ntyp)
+        nx = np.int32(nx)
+        lmax = np.int32(lmax)
+        cutoff = np.float64(cutoff)
+        del_fpe, e_diff = fplib3.get_simpson_energy(lat, rxyz, types, znucl,
+                                                    contract = contract,
+                                                    ntyp = ntyp,
+                                                    nx = nx,
+                                                    lmax = lmax,
+                                                    cutoff = cutoff)
+        print ( "Numerical integral = {0:.6e}".format(del_fpe) )
+        print ( "Fingerprint energy difference = {0:.6e}".format(e_diff) )
+        if np.allclose(del_fpe, e_diff):
+            print("Energy consistency test passed!")
+        else:
+            print("Energy consistency test failed!")
+        
+    
+    def test_force_consistency(self, atoms = None, **kwargs):
+        
+        from ase.calculators.test import numeric_force
+        
+        indices = range(len(atoms))
+        f = atoms.get_forces()[indices]
+        print('{0:>16} {1:>20}'.format('eps', 'max(abs(df))'))
+        for eps in np.logspace(-1, -8, 8):
+            fn = np.zeros((len(indices), 3))
+            for idx, i in enumerate(indices):
+                for j in range(3):
+                    fn[idx, j] = numeric_force(atoms, i, j, eps)
+            print('{0:16.12f} {1:20.12f}'.format(eps, abs(fn - f).max()))
+        
+        
+        print ( "Numerical forces = \n{0:s}".\
+               format(np.array_str(fn, precision=6, suppress_small=False)) )
+        print ( "Fingerprint forces = \n{0:s}".\
+               format(np.array_str(f, precision=6, suppress_small=False)) )
+        if np.allclose(f, fn):
+            print("Force consistency test passed!")
+        else:
+            print("Force consistency test failed!")
 
 ########################################################################################
 ####################### Helper functions for the VASP calculator #######################
