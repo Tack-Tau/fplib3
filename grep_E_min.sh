@@ -1,7 +1,2 @@
 #!/bin/bash
-for i in {1..200}
-do
-  cd ./${i}/
-  grep "BFGS:" slurm-* | tail -1 | awk '{print $4 }' >> ../E_min_list.dat
-  cd ..
-done
+for i in {1..200} ; do grep "BFGS:" ${i}/slurm-* | tail -1 | awk '{print $4 }' ; done > E_min_list.dat
