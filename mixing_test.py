@@ -16,7 +16,7 @@ trajfile = 'opt.traj'
 '''
 from ase.calculators.vasp import Vasp
 
-kpoints = writekp.writekp(kgrid=0.04)
+kpoints = writekp.writekp(kgrid=0.07)
 calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp_std',
               xc = 'PBE',
               setups = 'recommended',
@@ -24,7 +24,7 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               prec = 'Normal',
               # ediff = 1.0e-8,
               # ediffg = -1.0e-5,
-              encut = 520.0,
+              encut = 400.0,
               ibrion = -1, # No VASP relaxation
               nsw = 0, # Max. no of relaxation steps
               isif = 3,
@@ -61,6 +61,29 @@ calc1 = Potential(param_filename='./gp_iter6_sparse9k.xml')
 
 from fplib3_api4ase import fp_GD_Calculator
 
+atoms.calc = calc1
+print ("GAP_energy:\n", atoms.get_potential_energy())
+print ("GAP_forces:\n", atoms.get_forces())
+print ("GAP_stress:\n", atoms.get_stress())
+# fmax_1 = np.amax(np.absolute(atoms.get_forces()))
+
+
+
+from ase.calculators.dftb import Dftb
+import writekp
+
+kpoints = writekp.writekp(kgrid=0.07)
+calc1 = Dftb(atoms = atoms,
+             kpts = tuple(kpoints),
+             label = 'dftb')
+atoms.calc = calc1
+print ("DFTB_energy:\n", atoms.get_potential_energy())
+print ("DFTB_forces:\n", atoms.get_forces())
+print ("DFTB_stress:\n", atoms.get_stress())
+# fmax_1 = np.amax(np.absolute(atoms.get_forces()))
+
+
+
 calc2 = fp_GD_Calculator(
             cutoff = 6.0,
             contract = False,
@@ -72,13 +95,6 @@ calc2 = fp_GD_Calculator(
 # calc = MixedCalculator(calc1, calc2)
 # atoms.set_calculator(calc)
 
-atoms.calc = calc1
-print ("GAP_energy:\n", atoms.get_potential_energy())
-print ("GAP_forces:\n", atoms.get_forces())
-print ("GAP_stress:\n", atoms.get_stress())
-# fmax_1 = np.amax(np.absolute(atoms.get_forces()))
-
-
 atoms.calc = calc2
 print ("fp_energy:\n", atoms.get_potential_energy())
 print ("fp_forces:\n", atoms.get_forces())
@@ -86,6 +102,8 @@ print ("fp_stress:\n", atoms.get_stress())
 # fmax_2 = np.amax(np.absolute(atoms.get_forces()))
 
 # f_ratio = fmax_1 / fmax_2
+
+
 
 calc = MixedCalculator(calc1, calc2)
 atoms.calc = calc
