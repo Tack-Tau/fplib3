@@ -6,4 +6,4 @@ function exists_in_list() {
   echo $LIST | tr "$DELIMITER" '\n' | grep -F -q -x "$VALUE"
 }
 redo_dir="$(input="./redo_SCF_dir" ; while IFS= read -r line ; do printf "%s " $line ; done < "$input")"
-for i in {1..200} ; do if exists_in_list "$redo_dir" " " $i ; then grep "FIRE:" fV/${i}/slurm-* | tail -1 | awk '{print $4 }' ; else grep "FIRE:" fVfV/${i}/slurm-* | tail -1 | awk '{print $4 }' ; fi ; done > SCF_E_min_list.dat
+for i in {1..200} ; do if exists_in_list "$redo_dir" " " $i ; then grep "FIRE:" fVfV/${i}/slurm-* | tail -1 | awk '{print $4 }' ; else grep "FIRE:" fV/${i}/slurm-* | tail -1 | awk '{print $4 }' ; fi ; done > SCF_E_min_list.dat
