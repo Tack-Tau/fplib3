@@ -135,6 +135,7 @@ class MixedCalculator(LinearCombinationCalculator):
             self.weights[1] = self.f_ratio
         
         if self.iter > self.iter_max:
+            self.weights[0] = 1.0
             self.weights[1] = 0.0
         else:
             if ((self.iter+1) % 3) != 0:
