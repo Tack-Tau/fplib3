@@ -623,6 +623,8 @@ def get_fpdist(ntyp, types, fp1, fp2, mx=False):
 def get_ef(fp, dfp, ntyp, types):
     nat = len(fp)
     e = 0.
+    fp = np.ascontiguousarray(fp)
+    dfp = np.ascontiguousarray(dfp)
     for ityp in range(ntyp):
         itype = ityp + 1
         e0 = 0.
@@ -632,6 +634,7 @@ def get_ef(fp, dfp, ntyp, types):
                     vij = fp[i] - fp[j]
                     t = np.dot(vij, vij)
                     e0 += t
+            e0 += 1.0/(np.linalg.norm(fp[i]) ** 2)
         # print ("e0", e0)
         e += e0
     # print ("e", e)
@@ -648,7 +651,9 @@ def get_ef(fp, dfp, ntyp, types):
                         dvij = dfp[i][k] - dfp[j][k]
                         for l in range(3):
                             t = -2 * np.dot(vij, dvij[l])
-                            force[k][l] += t
+                            t_prime = 2.0 * np.dot(fp[i],dfp[i][k][l]) / (np.linalg.norm(fp[i]) ** 4)
+                            t_mod = t + t_prime
+                            force[k][l] += t_mod
     force = force - np.sum(force, axis=0)/len(force)
     return e, force
 
@@ -657,6 +662,7 @@ def get_ef(fp, dfp, ntyp, types):
 def get_fpe(fp, ntyp, types):
     nat = len(fp)
     e = 0.
+    fp = np.ascontiguousarray(fp)
     for ityp in range(ntyp):
         itype = ityp + 1
         e0 = 0.
@@ -666,6 +672,7 @@ def get_fpe(fp, ntyp, types):
                     vij = fp[i] - fp[j]
                     t = np.dot(vij, vij)
                     e0 += t
+            e0 += 1.0/(np.linalg.norm(fp[i]) ** 2)
         e += e0
     return e
 
