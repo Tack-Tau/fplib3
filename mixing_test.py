@@ -40,7 +40,32 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               kpts = kpoints,
               gamma = True
               )
+
+
+from ase.calculators.lj import LennardJones
+calc1 = LennardJones()
+calc1.parameters.epsilon = 1.0
+calc1.parameters.sigma = 1.0
+calc1.parameters.rc = 2.5
+calc1.parameters.smooth = True
+
+atoms.calc = calc1
+print ("LJ_energy:\n", atoms.get_potential_energy())
+print ("LJ_forces:\n", atoms.get_forces())
+print ("LJ_stress:\n", atoms.get_stress())
+
+##################################################################################################
+Sigma gives a measurement of how close two nonbonding particles can get and is thus referred to as the van der Waals radius. It is equal to one-half of the internuclear distance between nonbonding particles.
+Ideally, r_min == 2**(1/6) * sigma == 2.0 * r_cov, which means van der Waals radius is approximately two times larger than covalent radius.
+
+Reference:
+https://en.wikipedia.org/wiki/Lennard-Jones_potential
+https://en.wikipedia.org/wiki/Van_der_Waals_radius
+https://en.wikipedia.org/wiki/Covalent_radius
+##################################################################################################
 '''
+
+
 
 from SF_LJ_api4ase import ShiftedForceLennardJones
 
@@ -53,6 +78,8 @@ atoms.calc = calc1
 print ("SFLJ_energy:\n", atoms.get_potential_energy())
 print ("SFLJ_forces:\n", atoms.get_forces())
 print ("SFLJ_stress:\n", atoms.get_stress())
+
+
 
 '''
 from quippy.potential import Potential
