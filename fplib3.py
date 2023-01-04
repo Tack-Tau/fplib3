@@ -613,6 +613,7 @@ def get_fpdist(ntyp, types, fp1, fp2, mx=False):
         fpd += total
 
     fpd = fpd / nat
+    # fpd = ((fpd+1.0)*np.log(fpd+1.0)-fpd)
     if mx:
         return fpd, col_ind
     else:
@@ -655,6 +656,7 @@ def get_ef(fp, dfp, ntyp, types):
                             t_mod = t + t_prime
                             force[k][l] += t_mod
     force = force - np.sum(force, axis=0)/len(force)
+    # return ((e+1.0)*np.log(e+1.0)-e), force*np.log(e+1.0) 
     return e, force
 
 
@@ -674,6 +676,7 @@ def get_fpe(fp, ntyp, types):
                     e0 += t
             e0 += 1.0/(np.linalg.norm(fp[i]) ** 2)
         e += e0
+    # return ((e+1.0)*np.log(e+1.0)-e)
     return e
 
 @jit('(float64[:])(float64[:,:], float64[:,:], int32[:], int32[:], \
