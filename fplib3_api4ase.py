@@ -49,7 +49,7 @@ class fp_GD_Calculator(Calculator):
     # name = 'fingerprint'
     # ase_objtype = 'fingerprint_calculator'  # For JSON storage
 
-    implemented_properties = [ 'energy', 'forces', 'stress' ]
+    implemented_properties = [ 'energies', 'energy', 'forces', 'stresses', 'stress' ]
 
     
     default_parameters = {
@@ -165,9 +165,11 @@ class fp_GD_Calculator(Calculator):
             atoms = self.atoms
         # self.update_atoms(atoms)
         
+        self.results['energies'] = self.get_potential_energy(atoms) / len(self.atoms)
         self.results['energy'] = self.get_potential_energy(atoms)
         self.results['forces'] = self.get_forces(atoms)
         # self.results['forces'] = self.calculate_numerical_forces(atoms)
+        self.results['stresses'] = self.get_stress(atoms) / len(self.atoms)
         self.results['stress'] = self.get_stress(atoms)
         # self.results['stress'] = self.calculate_numerical_stress(atoms)
         
