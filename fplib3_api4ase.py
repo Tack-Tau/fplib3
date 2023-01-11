@@ -167,7 +167,7 @@ class fp_GD_Calculator(Calculator):
         
         natoms = len(self.atoms)
         energies = np.ones(natoms, dtype = np.float64)
-        stresses = np.ones((natoms, 3, 3), dtype = np.float64)
+        identity = np.eye(3, dtype = np.float64)
         
         # Per-atom energy has not been truely implemented yet, right now just returns average of cell energy with respect to total number of atoms in cell
         self.results['energies'] = self.get_potential_energy(atoms) * energies / natoms
@@ -176,7 +176,8 @@ class fp_GD_Calculator(Calculator):
         # Numerical forces, for verification
         # self.results['forces'] = self.calculate_numerical_forces(atoms)
         # Per-atom stress has not been truely implemented yet, right now just returns average of cell stress with respect to total number of atoms in cell
-        self.results['stresses'] = self.get_stress(atoms) * stresses / natoms
+        self.results['stresses'] = np.stack( [np.matmul(identity, \
+                                                        self.get_stress(atoms))] * natoms ) / natoms
         self.results['stress'] = self.get_stress(atoms)
         # Numerical stress, for verification
         # self.results['stress'] = self.calculate_numerical_stress(atoms)
