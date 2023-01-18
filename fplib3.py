@@ -337,13 +337,13 @@ def get_dgom(lseg, gom, amp, damp, rxyz, alpha, icenter):
         dss_c = np.empty(3, dtype = np.float64)
         dsp_i = np.empty((3,3), dtype = np.float64)
         dsp_j = np.empty((3,3), dtype = np.float64)
-        dsp_c = np.empty(3, dtype = np.float64)
+        dsp_c = np.empty((3,3), dtype = np.float64)
         dps_i = np.empty((3,3), dtype = np.float64)
         dps_j = np.empty((3,3), dtype = np.float64)
-        dps_c = np.empty(3, dtype = np.float64)
+        dps_c = np.empty((3,3), dtype = np.float64)
         dpp_i = np.empty((3,3,3), dtype = np.float64)
         dpp_j = np.empty((3,3,3), dtype = np.float64)
-        dpp_c = np.empty(3, dtype = np.float64)
+        dpp_c = np.empty((3,3,3), dtype = np.float64)
         dgom = np.zeros((nat, 3, 4*nat, 4*nat), dtype = np.float64)
         for iat in range(nat):
             for jat in range(nat):
@@ -387,12 +387,12 @@ def get_dgom(lseg, gom, amp, damp, rxyz, alpha, icenter):
                         np.multiply(d[k_sp], d[i_sp]) * gom[4*iat][4*jat] + \
                         djpi * gom[4*iat][4*jat+i_sp+1] * djc[k_sp]
                         
-                        dsp_c[k_sp] = -dipj * gom[4*iat][4*jat] * dic[k_sp] - \
-                        djpi * gom[4*iat][4*jat] * djc[k_sp]
+                        dsp_c[k_sp][i_sp] = -dipj * gom[4*iat][4*jat+i_sp+1] * dic[k_sp] - \
+                        djpi * gom[4*iat][4*jat+i_sp+1] * djc[k_sp]
                         
                         dgom[iat][k_sp][4*iat][4*jat+i_sp+1] += dsp_i[k_sp][i_sp]
                         dgom[jat][k_sp][4*iat][4*jat+i_sp+1] += dsp_j[k_sp][i_sp]
-                        dgom[icenter][k_sp][4*iat][4*jat+i_sp+1] += dsp_c[k_sp]
+                        dgom[icenter][k_sp][4*iat][4*jat+i_sp+1] += dsp_c[k_sp][i_sp]
                 
                 # <p_i | s_j>
                 for k_ps in range(3):
@@ -401,20 +401,20 @@ def get_dgom(lseg, gom, amp, damp, rxyz, alpha, icenter):
                         kron_delta(k_ps, i_ps) * gom[4*iat][4*jat] + \
                         (1/np.sqrt(alpha[iat]))* pij * tt ** 2 * \
                         np.multiply(d[k_ps], d[i_ps]) * gom[4*iat][4*jat] + \
-                        dipj * gom[4*iat][4*jat+i_ps+1] * dic[k_ps]
+                        dipj * gom[4*iat+i_ps+1][4*jat] * dic[k_ps]
                         
                         dps_j[k_ps][i_ps] = +(1/np.sqrt(alpha[iat])) * pij * tt * \
                         kron_delta(k_ps, i_ps) * gom[4*iat][4*jat] - \
                         (1/np.sqrt(alpha[iat]))* pij * tt ** 2 * \
                         np.multiply(d[k_ps], d[i_ps]) * gom[4*iat][4*jat] + \
-                        djpi * gom[4*iat][4*jat+i_ps+1] * djc[k_ps]
+                        djpi * gom[4*iat+i_ps+1][4*jat] * djc[k_ps]
                         
-                        dps_c[k_ps] = -dipj * gom[4*iat][4*jat] * dic[k_ps] - \
-                        djpi * gom[4*iat][4*jat] * djc[k_ps]
+                        dps_c[k_ps][i_ps] = -dipj * gom[4*iat+i_ps+1][4*jat] * dic[k_ps] - \
+                        djpi * gom[4*iat+i_ps+1][4*jat] * djc[k_ps]
                         
                         dgom[iat][k_ps][4*iat+i_ps+1][4*jat] += dps_i[k_ps][i_ps]
                         dgom[jat][k_ps][4*iat+i_ps+1][4*jat] += dps_j[k_ps][i_ps]
-                        dgom[icenter][k_ps][4*iat+i_ps+1][4*jat] += dps_c[k_ps]
+                        dgom[icenter][k_ps][4*iat+i_ps+1][4*jat] += dps_c[k_ps][i_ps]
                 
                 # <p_i | p_j>
                 for k_pp in range(3):
@@ -434,14 +434,15 @@ def get_dgom(lseg, gom, amp, damp, rxyz, alpha, icenter):
                             (1/np.sqrt(alpha[iat]*alpha[jat])) * pij * tt ** 2 * \
                             (kron_delta(k_pp, i_pp)*d[j_pp] + kron_delta(k_pp, j_pp)*d[i_pp]) * \
                             gom[4*iat][4*jat] + \
-                            dipj * gom[4*iat+i_pp+1][4*jat+j_pp+1] * dic[k_pp]
+                            djpi * gom[4*iat+i_pp+1][4*jat+j_pp+1] * djc[k_pp]
 
-                            dpp_c[k_pp] = -dipj * gom[4*iat][4*jat] * dic[k_pp] - \
-                            djpi * gom[4*iat][4*jat] * djc[k_pp]
+                            dpp_c[k_pp][i_pp][j_pp] = -dipj * gom[4*iat+i_pp+1][4*jat+j_pp+1] * \
+                            dic[k_pp] - djpi * gom[4*iat+i_pp+1][4*jat+j_pp+1] * djc[k_pp]
 
                             dgom[iat][k_pp][4*iat+i_pp+1][4*jat+j_pp+1] += dpp_i[k_pp][i_pp][j_pp]
                             dgom[jat][k_pp][4*iat+i_pp+1][4*jat+j_pp+1] += dpp_j[k_pp][i_pp][j_pp]
-                            dgom[icenter][k_pp][4*iat+i_pp+1][4*jat+j_pp+1] += dpp_c[k_pp]
+                            dgom[icenter][k_pp][4*iat+i_pp+1][4*jat+j_pp+1] += \
+                                                                           dpp_c[k_pp][i_pp][j_pp]
                 
                 
     return dgom
