@@ -779,7 +779,8 @@ def get_ef(fp, dfp, ntyp, types):
         e += e0
     # print ("e", e)
 
-    force = np.zeros((nat, 3), dtype = np.float64)
+    force_0 = np.zeros((nat, 3), dtype = np.float64)
+    force_prime = np.zeros((nat, 3), dtype = np.float64)
 
     for k in range(nat):
         for ityp in range(ntyp):
@@ -791,9 +792,11 @@ def get_ef(fp, dfp, ntyp, types):
                         dvij = dfp[i][k] - dfp[j][k]
                         for l in range(3):
                             t = -2 * np.dot(vij, dvij[l])
-                            t_prime = 2.0 * np.dot(fp[i],dfp[i][k][l]) / (np.linalg.norm(fp[i]) ** 4)
-                            t_mod = t + t_prime
-                            force[k][l] += t_mod
+                            force_0[k][l] += t
+                for m in range(3):
+                    t_prime = 2.0 * np.dot(fp[i],dfp[i][k][m]) / (np.linalg.norm(fp[i]) ** 4)
+                    force_prime[k][m] += t_prime
+    force = force_0 + force_prime
     force = force - np.sum(force, axis=0)/len(force)
     # return ((e+1.0)*np.log(e+1.0)-e), force*np.log(e+1.0) 
     return e, force
