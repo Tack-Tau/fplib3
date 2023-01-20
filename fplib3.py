@@ -231,7 +231,7 @@ def get_gom(lseg, rxyz, alpha, amp):
                 mamp[4*iat][4*jat] = amp[iat]*amp[jat]
                 
                 # <s_i | p_j>
-                stv = -2.0 * np.sqrt(alpha[jat])*alpha[iat] * sij
+                stv = 2.0 * (1/np.sqrt(alpha[jat])) * (t1/t2) * sij
                 om[4*iat][4*jat+1] = stv * d[0] 
                 om[4*iat][4*jat+2] = stv * d[1] 
                 om[4*iat][4*jat+3] = stv * d[2]  
@@ -240,7 +240,7 @@ def get_gom(lseg, rxyz, alpha, amp):
                 mamp[4*iat][4*jat+2] = amp[iat]*amp[jat]
                 mamp[4*iat][4*jat+3] = amp[iat]*amp[jat]
                 # <p_i | s_j> 
-                stv = -2.0 * np.sqrt(alpha[iat])*alpha[jat] * sij
+                stv = -2.0 * (1/np.sqrt(alpha[iat])) * (t1/t2) * sij
                 om[4*iat+1][4*jat] = stv * d[0] 
                 om[4*iat+2][4*jat] = stv * d[1] 
                 om[4*iat+3][4*jat] = stv * d[2] 
