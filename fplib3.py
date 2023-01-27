@@ -311,7 +311,7 @@ def get_dgom(lseg, gom, amp, damp, rxyz, alpha, icenter):
         for iat in range(nat):
             for jat in range(nat):
                 d = rxyz[iat] - rxyz[jat]
-                d2 = np.dot(d, d)
+                d2 = np.vdot(d, d)
                 t1 = alpha[iat] * alpha[jat]
                 t2 = alpha[iat] + alpha[jat]
                 tt = 2.0 * t1 / t2
@@ -348,7 +348,7 @@ def get_dgom(lseg, gom, amp, damp, rxyz, alpha, icenter):
         for iat in range(nat):
             for jat in range(nat):
                 d = rxyz[iat] - rxyz[jat]
-                d2 = np.dot(d, d)
+                d2 = np.vdot(d, d)
                 t1 = alpha[iat] * alpha[jat]
                 t2 = alpha[iat] + alpha[jat]
                 tt = 2.0 * t1 / t2
@@ -694,7 +694,7 @@ def get_fp(lat, rxyz, types, znucl,
                     for ik in range(3):
                         matt = dgom[iats][ik]
                         vv1 = np.dot(vvec, matt)
-                        vv2 = np.dot(vv1, np.transpose(vvec))
+                        vv2 = np.vdot(vv1, np.transpose(vvec))
                         dvdr[iats][iorb][ik] = vv2
             for iats in range(n_sphere):
                 iiat = indori[iats]
@@ -773,7 +773,7 @@ def get_ef(fp, dfp, ntyp, types):
             for j in range(nat):
                 if types[i] == itype and types[j] == itype:
                     vij = fp[i] - fp[j]
-                    t = np.dot(vij, vij)
+                    t = np.vdot(vij, vij)
                     e0 += t
             e0 += 1.0/(np.linalg.norm(fp[i]) ** 2)
         # print ("e0", e0)
@@ -792,10 +792,10 @@ def get_ef(fp, dfp, ntyp, types):
                         vij = fp[i] - fp[j]
                         dvij = dfp[i][k] - dfp[j][k]
                         for l in range(3):
-                            t = -2 * np.dot(vij, dvij[l])
+                            t = -2 * np.vdot(vij, dvij[l])
                             force_0[k][l] += t
                 for m in range(3):
-                    t_prime = 2.0 * np.dot(fp[i],dfp[i][k][m]) / (np.linalg.norm(fp[i]) ** 4)
+                    t_prime = 2.0 * np.vdot(fp[i],dfp[i][k][m]) / (np.linalg.norm(fp[i]) ** 4)
                     force_prime[k][m] += t_prime
     force = force_0 + force_prime
     force = force - np.sum(force, axis=0)/len(force)
@@ -815,7 +815,7 @@ def get_fpe(fp, ntyp, types):
             for j in range(nat):
                 if types[i] == itype and types[j] == itype:
                     vij = fp[i] - fp[j]
-                    t = np.dot(vij, vij)
+                    t = np.vdot(vij, vij)
                     e0 += t
             e0 += 1.0/(np.linalg.norm(fp[i]) ** 2)
         e += e0
