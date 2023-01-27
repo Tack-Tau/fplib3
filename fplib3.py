@@ -693,8 +693,8 @@ def get_fp(lat, rxyz, types, znucl,
                     vvec = vecs[iorb]
                     for ik in range(3):
                         matt = dgom[iats][ik]
-                        vv1 = np.dot(vvec, matt)
-                        vv2 = np.vdot(vv1, np.transpose(vvec))
+                        vv1 = np.dot(np.conjugate(vvec), matt)
+                        vv2 = np.dot(vv1, np.transpose(vvec))
                         dvdr[iats][iorb][ik] = vv2
             for iats in range(n_sphere):
                 iiat = indori[iats]
