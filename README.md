@@ -9,8 +9,8 @@
 * ASE >= 3.22.1
 
 ## Setup
-`conda create -n fplibenv python=3.8 pip ; conda activate fplibenv`
-`python3 -m pip install --user -U pip setuptools wheel numpy scipy ase numba`
+`conda create -n fplibenv python=3.8 pip ; conda activate fplibenv`\
+`python3 -m pip install --user -U pip setuptools wheel numpy scipy ase numba`\
 `git clone https://github.com/Tack-Tau/fplib3.git ./fplib3`
 
 ## Usage
