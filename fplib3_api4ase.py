@@ -19,9 +19,13 @@ class fp_GD_Calculator(Calculator):
             'energy': Sum of atomic fingerprint distance (L2 norm of two atomic 
                                                           fingerprint vectors)
             
+            'energies': Per-atom property of 'energy'
+            
             'forces': Gradient of fingerprint energy, using Hellmann–Feynman theorem
             
             'stress': Cauchy stress tensor using finite difference method
+            
+            'stresses': Per-atom property of 'stress'
 
         Parameters:
 
@@ -49,8 +53,8 @@ class fp_GD_Calculator(Calculator):
     # name = 'fingerprint'
     # ase_objtype = 'fingerprint_calculator'  # For JSON storage
 
-    implemented_properties = [ 'energies', 'energy', 'forces', 'stresses', 'stress' ]
-
+    implemented_properties = [ 'energy', 'forces', 'stress' ]
+    implemented_properties += ['energies', 'stresses'] # per-atom properties
     
     default_parameters = {
                           'contract': False,
