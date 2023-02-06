@@ -16,7 +16,9 @@
 ## Usage
 ### Basic ASE style documentation
 ```
-    """ASE interface for fp_GD, with the Calculator interface.
+    Fingerprint Calculator interface for ASE
+    
+    See details for [ASE calculator proposal](https://wiki.fysik.dtu.dk/ase/development/proposals/calculators.html#aep1)
     
         Implemented Properties:
         
@@ -53,7 +55,6 @@
             cutoff: float
                 Cutoff radius for f_c(r) (smooth cutoff function) [amp], unit in Angstroms
                 
-    """
 ```
 
 
