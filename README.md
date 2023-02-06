@@ -58,7 +58,7 @@
 
 
 ### Calling fplib3 calculator from ASE API
-```
+```python
 import numpy as np
 import ase.io
 from ase.optimize import BFGS, LBFGS, BFGSLineSearch, QuasiNewton, FIRE
