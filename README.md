@@ -18,7 +18,7 @@
 ```
     Fingerprint Calculator interface for ASE
     
-    See details for [ASE calculator proposal](https://wiki.fysik.dtu.dk/ase/development/proposals/calculators.html#aep1)
+    See details for [ASE calculator proposal](https://wiki.fysik.dtu.dk/ase/development/proposals/calculators.html)
     
         Implemented Properties:
         
