@@ -9,9 +9,6 @@ from ase.constraints import StrainFilter, UnitCellFilter
 from ase.io.trajectory import Trajectory
 
 from fplib3_api4ase import fp_GD_Calculator
-# from fplib3_mixing import MixedCalculator
-# from ase.calculators.mixing import MixedCalculator
-# from ase.calculators.vasp import Vasp
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
