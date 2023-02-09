@@ -1,7 +1,6 @@
 import os
 import sys
 import numpy as np
-import writekp
 import ase.io
 from ase.optimize import BFGS, LBFGS, BFGSLineSearch, QuasiNewton, FIRE
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
@@ -18,6 +17,7 @@ trajfile = 'opt.traj'
 
 '''
 from ase.calculators.vasp import Vasp
+import writekp
 
 kpoints = writekp.writekp(kgrid=0.07)
 calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp_std',
@@ -114,6 +114,22 @@ print ("DFTB_stress:\n", atoms.get_stress())
 
 
 
+from m3gnet.models._base import Potential
+from m3gnet.models._m3gnet import M3GNet
+from M3GNet_api4ase import M3GNet_Calculator
+
+calc1 = M3GNet_Calculator(Potential(M3GNet.load()),
+                          compute_stress = True,
+                          stress_weight = 1.0)
+atoms.calc = calc1
+print ("M3GNet_energy:\n", atoms.get_potential_energy())
+print ("M3GNet_forces:\n", atoms.get_forces())
+print ("M3GNet_stress:\n", atoms.get_stress())
+
+
+
+#############################################################################
+
 calc2 = fp_GD_Calculator(
             cutoff = 6.0,
             contract = False,
@@ -151,18 +167,33 @@ print ("mixed_stress:\n", atoms.get_stress())
 # af = StrainFilter(atoms)
 af = UnitCellFilter(atoms, scalar_pressure = 0.0)
 
-############################## Relaxation method ##############################\
+############################## Relaxation method ##############################
 
-opt = BFGS(af, maxstep = 1.e-1, trajectory = trajfile)
-# opt = FIRE(af, maxstep = 1.e-1, trajectory = trajfile)
+# opt = BFGS(af, maxstep = 1.e-1, trajectory = trajfile)
+opt = FIRE(af, maxstep = 1.e-1, trajectory = trajfile)
 # opt = LBFGS(af, maxstep = 1.e-1, trajectory = trajfile, memory = 10, use_line_search = True)
 # opt = LBFGS(af, maxstep = 1.e-1, trajectory = trajfile, memory = 10, use_line_search = False)
 # opt = SciPyFminCG(af, maxstep = 1.e-1, trajectory = trajfile)
 # opt = SciPyFminBFGS(af, maxstep = 1.e-1, trajectory = trajfile)
 
-opt.run(fmax = 1.e-5)
+opt.run(fmax = 1.e-3)
 
 traj = Trajectory(trajfile)
-ase.io.write('opt.vasp', traj[-1], direct = True, long_format=True, vasp5 = True)
+atoms_final = traj[-1]
+ase.io.write('opt.vasp', atoms_final, direct = True, long_format=True, vasp5 = True)
 
+final_cell = atoms_final.get_cell()
+final_cell_par = atoms_final.cell.cellpar()
+final_structure = atoms_final.get_scaled_positions()
+final_energy_per_atom = float( atoms_final.get_potential_energy() / len(atoms_final) )
+final_stress = atoms_final.get_stress()
 
+print("Relaxed lattice vectors are \n{0:s}".\
+      format(np.array_str(final_cell, precision=6, suppress_small=False)))
+print("Relaxed cell parameters are \n{0:s}".\
+     format(np.array_str(final_cell_par, precision=6, suppress_small=False)))
+print("Relaxed structure in fractional coordinates is \n{0:s}".\
+      format(np.array_str(final_structure, precision=6, suppress_small=False)))
+print("Final energy per atom is \n{0:.6f}".format(final_energy_per_atom))
+print("Final stress is \n{0:s}".\
+      format(np.array_str(final_stress, precision=6, suppress_small=False)))
