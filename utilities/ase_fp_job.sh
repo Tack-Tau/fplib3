@@ -3,16 +3,18 @@
 #SBATCH --constraint="skylake|cascadelake"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem-per-cpu=2GB
+#SBATCH --mem-per-cpu=4GB
 #SBATCH --time=12:00:00
 
-# For FP, QUIP, LJ, SFLJ
 module purge
-module use /projects/community/modulefiles
-module load intel/17.0.4 python/3.8.5-gc563
 ulimit -s unlimited
 ulimit -s
 export OMP_NUM_THREADS=1
+
+# For Fplib, QUIP, LJ, SFLJ
+# module use /projects/community/modulefiles
+# module load intel/17.0.4 python/3.8.5-gc563
+
 # For VASP
 # export VASP_PP_PATH="/home/st962/apps/" 
 
@@ -21,5 +23,9 @@ export OMP_NUM_THREADS=1
 # export DFTB_COMMAND=$HOME/.local/bin/dftb+/bin/dftb+
 # export DFTB_PREFIX=$HOME/apps/dftbplus/external/slakos/origin/pbc-0-3/
 
+# For M3GNet
+# source $HOME/.bashrc
+# $HOME/apps/miniconda3/condabin/conda activate m3gnet
+# export TF_ENABLE_ONEDNN_OPTS=0
 
 python3 mixing_test.py
