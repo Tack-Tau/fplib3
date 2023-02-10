@@ -3,8 +3,10 @@ import os
 import numpy as np
 import ase.io
 from ase import Atoms, units
+from ase.stress import full_3x3_to_voigt_6_stress
 from ase.calculators.calculator import Calculator
 from ase.calculators.calculator import CalculatorSetupError, all_changes
+from typing import Optional
 from m3gnet.models._base import Potential
 
 #################################### ASE Reference ####################################
@@ -19,6 +21,8 @@ class M3GNet_Calculator(Calculator):
     """
 
     implemented_properties = ["energy", "free_energy", "forces", "stress"]
+    # implemented_properties += ['energies', 'stresses'] # per-atom properties
+    
     default_parameters = {}
     
     def __init__(self,
@@ -117,9 +121,9 @@ class M3GNet_Calculator(Calculator):
             return True
         
     def calculate(self,
-                  atoms = None,
-                  properties = [ 'energy', 'forces', 'stress' ],
-                  system_changes = tuple(all_changes)
+                  atoms: Optional[Atoms] = None,
+                  properties: Optional[list] = None,
+                  system_changes: Optional[list] = None
                  ):
         """
         Args:
@@ -152,13 +156,19 @@ class M3GNet_Calculator(Calculator):
         graph = self.potential.graph_converter(atoms)
         graph_list = graph.as_tf().as_list()
         results = self.potential.get_efs_tensor(graph_list, include_stresses=self.compute_stress)
+        
+        e_res = results[0].numpy().ravel()[0]
+        free_res = results[0].numpy().ravel()[0]
+        f_res = results[1].numpy()
+        s_res = full_3x3_to_voigt_6_stress( results[2].numpy()[0] )
+        
         self.results.update(
-            energy=results[0].numpy().ravel()[0],
-            free_energy=results[0].numpy().ravel()[0],
-            forces=results[1].numpy(),
+            energy = e_res,
+            free_energy = free_res,
+            forces = f_res
         )
         if self.compute_stress:
-            self.results.update(stress=results[2].numpy()[0] * self.stress_weight)
+            self.results.update(stress = s_res * self.stress_weight)
     
     def check_state(self, atoms, tol = 1e-15):
         """Check for system changes since last calculation."""
