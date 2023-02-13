@@ -1,20 +1,13 @@
 import warnings
 from m3gnet.models import Relaxer
 import ase.io
-from ase.optimize import BFGS, LBFGS, BFGSLineSearch, QuasiNewton, FIRE
-from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
-from ase.constraints import StrainFilter, UnitCellFilter
-from ase.io.trajectory import Trajectory
-from m3gnet.models._base import Potential
+
+for category in (UserWarning, DeprecationWarning):
+    warnings.filterwarnings("ignore", category=category, module="tensorflow")
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
 trajfile = 'opt.traj'
-for category in (UserWarning, DeprecationWarning):
-    warnings.filterwarnings("ignore", category=category, module="tensorflow")
-
-# Init a Mo structure with stretched lattice (DFT lattice constant ~ 3.168)
-# mo = Structure(Lattice.cubic(3.3), ["Mo", "Mo"], [[0., 0., 0.], [0.5, 0.5, 0.5]])
 
 relaxer = Relaxer()  # This loads the default pre-trained model
 
