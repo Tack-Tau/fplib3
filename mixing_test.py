@@ -14,6 +14,7 @@ from ase.io.trajectory import Trajectory
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
 trajfile = 'opt.traj'
+print("Number of atoms:", len(atoms))
 
 '''
 from ase.calculators.vasp import Vasp

@@ -13,6 +13,7 @@ from fplib3_api4ase import fp_GD_Calculator
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
 trajfile = 'opt.traj'
+print("Number of atoms:", len(atoms))
 
 calc = fp_GD_Calculator(
             cutoff = 6.0,
@@ -44,17 +45,34 @@ af = UnitCellFilter(atoms, mask = mask, constant_volume = True, scalar_pressure 
 
 ############################## Relaxation method ##############################\
 
-opt = BFGS(af, maxstep = 1.e-1, trajectory = trajfile)
-# opt = FIRE(af, maxstep = 1.e-1, trajectory = trajfile)
+# opt = BFGS(af, maxstep = 1.e-1, trajectory = trajfile)
+opt = FIRE(af, maxstep = 1.e-1, trajectory = trajfile)
 # opt = LBFGS(af, maxstep = 1.e-1, trajectory = trajfile, memory = 10, use_line_search = True)
 # opt = LBFGS(af, maxstep = 1.e-1, trajectory = trajfile, memory = 10, use_line_search = False)
 # opt = SciPyFminCG(af, maxstep = 1.e-1, trajectory = trajfile)
 # opt = SciPyFminBFGS(af, maxstep = 1.e-1, trajectory = trajfile)
 
-opt.run(fmax = 1.e-5)
+opt.run(fmax = 1.e-3)
 
 traj = Trajectory(trajfile)
-ase.io.write('opt.vasp', traj[-1], direct = True, long_format=True, vasp5 = True)
+atoms_final = traj[-1]
+ase.io.write('opt.vasp', atoms_final, direct = True, long_format=True, vasp5 = True)
+
+final_cell = atoms_final.get_cell()
+final_cell_par = atoms_final.cell.cellpar()
+final_structure = atoms_final.get_scaled_positions()
+final_energy_per_atom = float( atoms_final.get_potential_energy() / len(atoms_final) )
+final_stress = atoms_final.get_stress()
+
+print("Relaxed lattice vectors are \n{0:s}".\
+      format(np.array_str(final_cell, precision=6, suppress_small=False)))
+print("Relaxed cell parameters are \n{0:s}".\
+     format(np.array_str(final_cell_par, precision=6, suppress_small=False)))
+print("Relaxed structure in fractional coordinates is \n{0:s}".\
+      format(np.array_str(final_structure, precision=6, suppress_small=False)))
+print("Final energy per atom is \n{0:.6f}".format(final_energy_per_atom))
+print("Final stress is \n{0:s}".\
+      format(np.array_str(final_stress, precision=6, suppress_small=False)))
 
 
 
