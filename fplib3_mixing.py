@@ -119,8 +119,8 @@ class MixedCalculator(LinearCombinationCalculator):
     def __init__(self, calc1, calc2):
         self.nonLinear_const = 3
         self.iter = 0
-        self.iter_max = 60
-        self.weights = [1.0, 1.0]
+        self.iter_max = 600
+        self.weights = [0.0, 1.0]
         weight1 = self.weights[0]
         weight2 = self.weights[1]
         super().__init__([calc1, calc2], [weight1, weight2])
@@ -128,20 +128,20 @@ class MixedCalculator(LinearCombinationCalculator):
     def set_weights(self, calc1, calc2, atoms):
         
         if self.iter == 0:
-            fmax_1 = np.amax(np.absolute(calc1.get_property('forces', atoms)))
-            fmax_2 = np.amax(np.absolute(calc2.get_property('forces', atoms)))
-            self.f_ratio = fmax_1 / fmax_2
-            self.weights[0] = 1.0
-            self.weights[1] = self.f_ratio
+            # fmax_1 = np.amax(np.absolute(calc1.get_property('forces', atoms)))
+            # fmax_2 = np.amax(np.absolute(calc2.get_property('forces', atoms)))
+            # self.f_ratio = fmax_1 / fmax_2
+            self.weights[0] = 0.0
+            self.weights[1] = 1.0
         
-        if self.iter > self.iter_max:
+        if self.iter >= self.iter_max:
             self.weights[0] = 1.0
             self.weights[1] = 0.0
         else:
             if ((self.iter+1) % 3) != 0:
-                self.weights[1] = \
-                                ((self.iter_max - 3 * (self.iter // 3) ) / self.iter_max) \
-                                 ** self.nonLinear_const * (self.f_ratio - 0.0)
+                self.weights[0] = \
+                                (( 3 * (self.iter // 3) ) / (self.iter_max - 3)) \
+                                 ** self.nonLinear_const
         # print("weights=", self.weights)
 
     def calculate(self, 
