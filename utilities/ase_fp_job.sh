@@ -27,7 +27,7 @@ export OMP_NUM_THREADS=1
 # For DFTB+
 # module load intel/17.0.4 python/3.8.5-gc563 gcc/10.2.0-bz186 cmake/3.19.5-bz186
 # export DFTB_COMMAND=$HOME/.local/bin/dftb+/bin/dftb+
-# export DFTB_PREFIX=$HOME/apps/dftbplus/external/slakos/origin/pbc-0-3/
+# export DFTB_PREFIX=$HOME/apps/dftbplus/external/slako/pbc/pbc-0-3/
 
 # For M3GNet
 # source $HOME/.bashrc
