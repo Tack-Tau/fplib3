@@ -86,11 +86,42 @@ print ("SFLJ_stress:\n", atoms.get_stress())
 
 
 '''
+########################################## For MgAl_2O_4 ##########################################
+
+from ase.calculators.lammpslib import LAMMPSlib
+
+cmds = ["mass 1 24.305",
+        "mass 2 26.982",
+        "mass 3 15.999",
+        "pair_style buck 10.0",
+        "pair_coeff * * 0.0 1.0 0.0",
+        "pair_coeff 1 3 1428.5 0.2945 0.0",
+        "pair_coeff 2 3 1114.9 0.3118 0.0",
+        "pair_coeff 3 3 2023.8 0.2674 0.0",
+        "compute p_eng all pe pair bond",
+        "compute k_eng all ke",
+        "compute tmp all temp",
+        "compute prs all pressure tmp",
+        "compute strs all stress/atom NULL pair bond",
+        "fix 1 all box/relax iso 1.0e+5 vmax 0.001",
+        "thermo 10",
+        "thermo_style custom step lx ly lz enthalpy etotal",
+        "dump coord all custom 10 lammps.dump id element x y z",
+        "dump_modify coord element Mg Al O",
+        "min_style cg",
+        "minimize 1e-25 1e-25 5000 10000"] 
+calc1 = LAMMPSlib(lmpcmds = cmds, log_file = 'lammps.log')
+
+atoms.calc = calc1
+print ("lmp_energy:\n", atoms.get_potential_energy())
+print ("lmp_forces:\n", atoms.get_forces())
+print ("lmp_stress:\n", atoms.get_stress())
+
+###################################################################################################
+
 from quippy.potential import Potential
 
 calc1 = Potential(param_filename='./gp_iter6_sparse9k.xml')
-
-from fplib3_api4ase import fp_GD_Calculator
 
 atoms.calc = calc1
 print ("GAP_energy:\n", atoms.get_potential_energy())
@@ -130,6 +161,8 @@ print ("M3GNet_stress:\n", atoms.get_stress())
 
 
 #############################################################################
+
+from fplib3_api4ase import fp_GD_Calculator
 
 calc2 = fp_GD_Calculator(
             cutoff = 6.0,

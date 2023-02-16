@@ -15,6 +15,12 @@ export OMP_NUM_THREADS=1
 # module use /projects/community/modulefiles
 # module load intel/17.0.4 python/3.8.5-gc563
 
+# For LAMMPS
+# module load intel/17.0.4 python
+# export LAMMPS_COMMAND="mpirun -np 8 $HOME/.local/bin/lmp"
+# export ASE_LAMMPSRUN_COMMAND="mpirun -np 8 $HOME/.local/bin/lmp"
+# export LAMMPS_POTENTIALS="$HOME/apps/lammps-29Sep2021/potentials/"
+
 # For VASP
 # export VASP_PP_PATH="/home/st962/apps/" 
 
