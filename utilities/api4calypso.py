@@ -26,14 +26,14 @@ def write_OUTCAR(caldir):
     with open("OUTCAR", "w") as f:
         f.write("  in kB" + ("      " + str(stress_kB))*3 + "      0.00000"*3)
         f.write("  external pressure =        " + str(stress_kB) + " kB  " + "Pullay stress =        0.00 kB" )
-        f.write("POSITION                                       TOTAL-FORCE (eV/Angst)\n")
+        f.write("POSITION                                       TOTAL-FORCE (eV/Angst)")
         f.write("---------------------------------------------------------------------")
         f.write("      0.00000"*3 + ("     " + str(f_max))*3)
         f.write("---------------------------------------------------------------------")
 
 def write_OSZICAR(caldir):
     with open("OSZICAR", "w") as f:
-        f.write("       N       E                     dE             d eps       ncg     rms              rms(c)\n")
+        f.write("       N       E                     dE             d eps       ncg     rms              rms(c)")
         f.write("DAV:   1    -0.198615932504E+02   -0.32495E-08   -0.20110E-10  8888   0.171E-05    0")
         f.write("   1 F= -.15117390E+02 E0= -.15117100E+02  d E =-.151174E+02")
         
