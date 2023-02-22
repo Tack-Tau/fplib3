@@ -26,13 +26,9 @@ and [ASE calculator proposal](https://wiki.fysik.dtu.dk/ase/development/proposal
             'energy': Sum of atomic fingerprint distance (L2 norm of two atomic 
                                                           fingerprint vectors)
             
-            'energies': Per-atom property of 'energy'
-            
             'forces': Gradient of fingerprint energy, using Hellmann–Feynman theorem
             
             'stress': Cauchy stress tensor using finite difference method
-            
-            'stresses': Per-atom property of 'stress'
             
         Parameters:
         
