@@ -29,7 +29,8 @@ def write_OUTCAR(caldir):
         f.write("  external pressure =        " + str(stress_kB) + " kB  " + "Pullay stress =        0.00 kB" )
         f.write("POSITION                                       TOTAL-FORCE (eV/Angst)")
         f.write("---------------------------------------------------------------------")
-        f.write("      0.00000"*3 + ("     " + str(f_max))*3)
+        for i in range(natom):
+            f.write("      0.00000"*3 + ("     " + str(f_max))*3)
         f.write("---------------------------------------------------------------------")
 
 def write_OSZICAR(caldir):
