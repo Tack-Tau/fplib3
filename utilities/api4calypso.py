@@ -24,6 +24,7 @@ def write_OUTCAR(caldir):
         energy = float(energies / natom)
     
     with open("OUTCAR", "w") as f:
+        f.write("  enthalpy is  TOTEN    =      " + str(energy) + " eV")
         f.write("  in kB" + ("      " + str(stress_kB))*3 + "      0.00000"*3)
         f.write("  external pressure =        " + str(stress_kB) + " kB  " + "Pullay stress =        0.00 kB" )
         f.write("POSITION                                       TOTAL-FORCE (eV/Angst)")
