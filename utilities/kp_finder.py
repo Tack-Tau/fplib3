@@ -7,7 +7,7 @@ import os
 import sys
 import math
 
-def writekp(kgrid=0.1, caldir='./'):
+def get_kpoints(kgrid=0.1, caldir='./'):
     """
     
     Arguments:
@@ -86,5 +86,5 @@ if __name__ == '__main__':
         kgrid = float(args[1])
     except:
         kgrid = 0.1
-    writekp(kgrid)
+    get_kpoints(kgrid)
 '''

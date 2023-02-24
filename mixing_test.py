@@ -18,9 +18,9 @@ print("Number of atoms:", len(atoms))
 
 '''
 from ase.calculators.vasp import Vasp
-import writekp
+import kp_finder
 
-kpoints = writekp.writekp(kgrid=0.07)
+kpoints = kp_finder.get_kpoints(kgrid=0.07)
 calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp_std',
               xc = 'PBE',
               setups = 'recommended',
@@ -132,9 +132,9 @@ print ("GAP_stress:\n", atoms.get_stress())
 
 
 from ase.calculators.dftb import Dftb
-import writekp
+import kp_finder
 
-kpoints = writekp.writekp(kgrid=0.07)
+kpoints = kp_finder.get_kpoints(kgrid=0.07)
 calc1 = Dftb(atoms = atoms,
              kpts = tuple(kpoints),
              label = 'dftb')
