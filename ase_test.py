@@ -52,7 +52,7 @@ opt = FIRE(af, maxstep = 1.e-1, trajectory = trajfile)
 # opt = SciPyFminCG(af, maxstep = 1.e-1, trajectory = trajfile)
 # opt = SciPyFminBFGS(af, maxstep = 1.e-1, trajectory = trajfile)
 
-opt.run(fmax = 1.e-3)
+opt.run(fmax = 1.e-3, steps = 5000)
 
 traj = Trajectory(trajfile)
 atoms_final = traj[-1]
