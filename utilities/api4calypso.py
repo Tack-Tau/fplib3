@@ -12,9 +12,12 @@ def OPT_2_CONTCAR(caldir):
 def write_OUTCAR(caldir):
     natom = os.popen('''grep "Number of atoms:" ''' + caldir + '''/slurm-* | awk '{print $4 }' ''').read()
     natom = int(natom)
-    fe_atom = os.popen('''grep -A1 "Final energy per atom is" ''' + caldir + '''/slurm-* | tail -1 | awk '{print $1 }' ''').read()
-    fe_atom = float(fe_atom)
+    try:
+        fe_atom = os.popen('''grep -A1 "Final energy per atom is" ''' + caldir + '''/slurm-* | tail -1 | awk '{print $1 }' ''').read()
+        fe_atom = float(fe_atom)
     energies = os.popen('''grep "FIRE:" ''' + caldir + '''/slurm-* | tail -1 | awk '{printf "%.6f", $4 }' ''').read()
+    except:
+        fe_atom = None
     energies = float(energies)
     f_max = os.popen('''grep "FIRE:" ''' + caldir + '''/slurm-* | tail -1 | awk '{printf "%.4f", $5 }' ''').read()
     f_max = float(f_max)
