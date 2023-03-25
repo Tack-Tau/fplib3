@@ -88,6 +88,22 @@ print ("SFLJ_stress:\n", atoms.get_stress())
 '''
 ########################################## For MgAl_2O_4 ##########################################
 
+from Buck_api4ase import Buckingham
+
+calc1 = Buckingham()
+calc1.parameters.A = np.array([1279.69, 1361.29, 9547.96, 0.0, 0.0, 0.0])
+calc1.parameters.rho = np.array([0.2997, 0.3013, 0.2240, 1.0, 1.0, 1.0])
+calc1.parameters.C = np.array([0.00, 0.00, 32.0, 0.0, 0.0, 0.0])
+calc1.parameters.rc = 10.0
+calc1.parameters.smooth = False
+
+atoms.calc = calc1
+print ("Buckingham_energy:\n", atoms.get_potential_energy())
+print ("Buckingham_forces:\n", atoms.get_forces())
+print ("Buckingham_stress:\n", atoms.get_stress())
+
+
+
 from ase.calculators.lammpslib import LAMMPSlib
 
 cmds = ["mass 1 24.305",
