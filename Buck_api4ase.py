@@ -250,11 +250,19 @@ class Buck(Calculator):
                     AB_neighbors.append(i_neighbors[ii])
                     AB_offsets.append(i_offsets[ii])
                 
+                elif atoms[i_atom].symbol == 'Al' and atoms[i_neighbors[ii]].symbol == 'Mg':
+                    AB_neighbors.append(i_neighbors[ii])
+                    AB_offsets.append(i_offsets[ii])
+                
                 elif atoms[i_atom].symbol == 'Al' and atoms[i_neighbors[ii]].symbol == 'Al':
                     BB_neighbors.append(i_neighbors[ii])
                     BB_offsets.append(i_offsets[ii])
                 
                 elif atoms[i_atom].symbol == 'Al' and atoms[i_neighbors[ii]].symbol == 'O':
+                    BC_neighbors.append(i_neighbors[ii])
+                    BC_offsets.append(i_offsets[ii])
+                
+                elif atoms[i_atom].symbol == 'O' and atoms[i_neighbors[ii]].symbol == 'Al':
                     BC_neighbors.append(i_neighbors[ii])
                     BC_offsets.append(i_offsets[ii])
                 
