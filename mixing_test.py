@@ -7,9 +7,6 @@ from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from ase.constraints import StrainFilter, UnitCellFilter
 from ase.io.trajectory import Trajectory
 
-# from fplib3_api4ase import fp_GD_Calculator
-# from fplib3_mixing import MixedCalculator
-# from ase.calculators.mixing import MixedCalculator
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
 ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
@@ -179,6 +176,7 @@ print ("M3GNet_stress:\n", atoms.get_stress())
 #############################################################################
 
 from fplib3_api4ase import fp_GD_Calculator
+from fplib3_mixing import MixedCalculator
 
 calc2 = fp_GD_Calculator(
             cutoff = 6.0,
@@ -215,6 +213,7 @@ print ("mixed_stress:\n", atoms.get_stress())
 
 # af = atoms
 # af = StrainFilter(atoms)
+# af = UnitCellFilter(atoms, scalar_pressure = 0.062415)
 af = UnitCellFilter(atoms, scalar_pressure = 0.0)
 
 ############################## Relaxation method ##############################
