@@ -133,6 +133,7 @@ class Buckingham(Calculator):
         'rho': np.array([0.2997, 0.3013, 0.2240, 1.0, 1.0, 1.0]),
         'C': np.array([0.00, 0.00, 32.0, 0.0, 0.0, 0.0]),
         'rc': 10.0,
+        'ro': None,
         'smooth': False,
     }
     nolabel = True
@@ -289,7 +290,7 @@ class Buckingham(Calculator):
                                                           A = A_AC,
                                                           rho = rho_AC,
                                                           C = C_AC,
-                                                          rc = rc
+                                                          rc = rc,
                                                           ro = ro )
                 energy += e_AC
                 force += f_AC
@@ -302,7 +303,7 @@ class Buckingham(Calculator):
                                                           A = A_BC,
                                                           rho = rho_BC,
                                                           C = C_BC,
-                                                          rc = rc
+                                                          rc = rc,
                                                           ro = ro )
                 energy += e_BC
                 force += f_BC
@@ -315,7 +316,7 @@ class Buckingham(Calculator):
                                                           A = A_CC,
                                                           rho = rho_CC,
                                                           C = C_CC,
-                                                          rc = rc
+                                                          rc = rc,
                                                           ro = ro )
                 energy += e_CC
                 force += f_CC
@@ -354,7 +355,7 @@ class Buckingham(Calculator):
                                                           A = A_AB,
                                                           rho = rho_AB,
                                                           C = C_AB,
-                                                          rc = rc
+                                                          rc = rc,
                                                           ro = ro )
                 energy += e_AB
                 force += f_AB
