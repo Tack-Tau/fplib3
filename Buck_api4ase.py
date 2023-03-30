@@ -129,28 +129,28 @@ class Buckingham(Calculator):
     implemented_properties = ['energy', 'energies', 'forces', 'free_energy']
     implemented_properties += ['stress', 'stresses']  # bulk properties
     default_parameters = {
-        'A': np.array([1279.69, 1361.29, 9547.96, 0.0, 0.0, 0.0]),
-        'rho': np.array([0.2997, 0.3013, 0.2240, 1.0, 1.0, 1.0]),
-        'C': np.array([0.00, 0.00, 32.0, 0.0, 0.0, 0.0]),
+        'A': np.array([1279.69, 1361.29, 9547.96]),
+        'rho': np.array([0.2997, 0.3013, 0.2240]),
+        'C': np.array([0.00, 0.00, 32.0]),
         'rc': 10.0,
         'ro': None,
         'smooth': False,
     }
     nolabel = True
 
-    def __init__(self, **kwargs):
+    def __init__(self, atoms = None, **kwargs):
         """
         Parameters
         ----------
         A: float
           A in ``u_ij = A exp( - r_ij/rho ) - C/r_ij^6 ``, unit in eV, see reference
-          Default np.array([1279.69, 1361.29, 9547.96, 0.0, 0.0, 0.0])
+          Default np.array([1279.69, 1361.29, 9547.96])
         rho: float
           rho in ``u_ij = A exp( - r_ij/rho ) - C/r_ij^6 ``, unit in Angstrom, see reference
-          Default np.array([0.2997, 0.3013, 0.2240, 0.0, 0.0, 0.0])
+          Default np.array([0.2997, 0.3013, 0.2240])
         C: float
           C in ``u_ij = A exp( - r_ij/rho ) - C/r_ij^6 ``, unit in eV*Angstrom**6, see reference
-          Default np.array([0.00, 0.00, 32.0, 0.0, 0.0, 0.0])
+          Default np.array([0.00, 0.00, 32.0])
         rc: float
           Cut-off for the NeighborList
           Default 10.0 Angstrom
@@ -168,7 +168,7 @@ class Buckingham(Calculator):
 
         """
 
-        Calculator.__init__(self, **kwargs)
+        Calculator.__init__(self, atoms = atoms, **kwargs)
 
         if self.parameters.rc is None:
             self.parameters.rc = 10.0
@@ -210,9 +210,9 @@ class Buckingham(Calculator):
         
         n_bin_list = np.bincount(ind1)
         
-        A_AC, A_BC, A_CC, A_AA, A_AB, A_BB  = A
-        rho_AC, rho_BC, rho_CC, rho_AA, rho_AB, rho_BB = rho
-        C_AC, C_BC, C_CC, C_AA, C_AB, C_BB = C
+        A_AC, A_BC, A_CC  = A
+        rho_AC, rho_BC, rho_CC = rho
+        C_AC, C_BC, C_CC = C
         
         for i_atom in range(natoms):
             energy = 0.0
@@ -222,16 +222,10 @@ class Buckingham(Calculator):
             AC_neighbors = []
             BC_neighbors = []
             CC_neighbors = []
-            AA_neighbors = []
-            BB_neighbors = []
-            AB_neighbors = []
             
             AC_offsets = []
             BC_offsets = []
             CC_offsets = []
-            AA_offsets = []
-            BB_offsets = []
-            AB_offsets = []
             
             icount_start += n_bin
             icount_end = icount_start + n_bin_list[i_atom]
@@ -243,44 +237,25 @@ class Buckingham(Calculator):
             # print("i_offsets", i_offsets)
             for ii in range(n_bin_list[i_atom]):
                 
-                if atoms[i_atom].symbol == 'Mg' and atoms[i_neighbors[ii]].symbol == 'Mg':
-                    AA_neighbors.append(i_neighbors[ii])
-                    AA_offsets.append(i_offsets[ii])
+                if atoms[i_atom].symbol == 'O' or atoms[i_neighbors[ii]].symbol == 'O':
                     
-                elif atoms[i_atom].symbol == 'Mg' and atoms[i_neighbors[ii]].symbol == 'Al':
-                    AB_neighbors.append(i_neighbors[ii])
-                    AB_offsets.append(i_offsets[ii])
+                    if atoms[i_atom].symbol == 'Mg' or atoms[i_neighbors[ii]].symbol == 'Mg':
+                        AC_neighbors.append(i_neighbors[ii])
+                        AC_offsets.append(i_offsets[ii])
+                    
+                    elif atoms[i_atom].symbol == 'Al' or atoms[i_neighbors[ii]].symbol == 'Al':
+                        BC_neighbors.append(i_neighbors[ii])
+                        BC_offsets.append(i_offsets[ii])
+                    
+                    elif atoms[i_atom].symbol == 'O' and atoms[i_neighbors[ii]].symbol == 'O':
+                        CC_neighbors.append(i_neighbors[ii])
+                        CC_offsets.append(i_offsets[ii])
+                    
                 
-                elif atoms[i_atom].symbol == 'Al' and atoms[i_neighbors[ii]].symbol == 'Mg':
-                    AB_neighbors.append(i_neighbors[ii])
-                    AB_offsets.append(i_offsets[ii])
-                
-                elif atoms[i_atom].symbol == 'Al' and atoms[i_neighbors[ii]].symbol == 'Al':
-                    BB_neighbors.append(i_neighbors[ii])
-                    BB_offsets.append(i_offsets[ii])
-                
-                elif atoms[i_atom].symbol == 'Al' and atoms[i_neighbors[ii]].symbol == 'O':
-                    BC_neighbors.append(i_neighbors[ii])
-                    BC_offsets.append(i_offsets[ii])
-                
-                elif atoms[i_atom].symbol == 'O' and atoms[i_neighbors[ii]].symbol == 'Al':
-                    BC_neighbors.append(i_neighbors[ii])
-                    BC_offsets.append(i_offsets[ii])
-                
-                elif atoms[i_atom].symbol == 'O' and atoms[i_neighbors[ii]].symbol == 'O':
-                    CC_neighbors.append(i_neighbors[ii])
-                    CC_offsets.append(i_offsets[ii])
-                
-                else:
-                    AC_neighbors.append(i_neighbors[ii])
-                    AC_offsets.append(i_offsets[ii])
                     
             AC_offsets = np.array(AC_offsets)
             BC_offsets = np.array(BC_offsets)
             CC_offsets = np.array(CC_offsets)
-            AA_offsets = np.array(AA_offsets)
-            BB_offsets = np.array(BB_offsets)
-            AB_offsets = np.array(AB_offsets)
             
             
             if len(AC_neighbors) > 0:
@@ -322,44 +297,6 @@ class Buckingham(Calculator):
                 force += f_CC
                 stress += s_CC
             
-            if len(AA_neighbors) > 0:
-                e_AA, f_AA, s_AA = self.get_pairwise_efs( icenter = i_atom,
-                                                          neighbors = AA_neighbors,
-                                                          offsets = AA_offsets,
-                                                          A = A_AA,
-                                                          rho = rho_AA,
-                                                          C = C_AA,
-                                                          rc = rc,
-                                                          ro = ro )
-                energy += e_AA
-                force += f_AA
-                stress += s_AA
-            
-            if len(BB_neighbors) > 0:
-                e_BB, f_BB, s_BB = self.get_pairwise_efs( icenter = i_atom,
-                                                          neighbors = BB_neighbors,
-                                                          offsets = BB_offsets,
-                                                          A = A_BB,
-                                                          rho = rho_BB,
-                                                          C = C_BB,
-                                                          rc = rc,
-                                                          ro = ro )
-                energy += e_BB
-                force += f_BB
-                stress += s_BB
-            
-            if len(AB_neighbors) > 0:
-                e_AB, f_AB, s_AB = self.get_pairwise_efs( icenter = i_atom,
-                                                          neighbors = AB_neighbors,
-                                                          offsets = AB_offsets,
-                                                          A = A_AB,
-                                                          rho = rho_AB,
-                                                          C = C_AB,
-                                                          rc = rc,
-                                                          ro = ro )
-                energy += e_AB
-                force += f_AB
-                stress += s_AB
             
             energies[i_atom] += energy
             forces[i_atom] += force
@@ -370,7 +307,7 @@ class Buckingham(Calculator):
             stresses = full_3x3_to_voigt_6_stress(stresses)
             self.results['stress'] = stresses.sum(axis=0) / self.atoms.get_volume()
             self.results['stresses'] = stresses / self.atoms.get_volume()
-
+        
         energy = energies.sum()
         self.results['energy'] = energy
         self.results['energies'] = energies
@@ -430,6 +367,30 @@ class Buckingham(Calculator):
         stress = 0.5 * np.dot( pairwise_forces.T, distance_vectors )  # equivalent to outer product
         
         return energy, forces, stress
+    
+    def test_force_consistency(self, atoms = None, **kwargs):
+        
+        from ase.calculators.test import numeric_force
+        
+        indices = range(len(atoms))
+        f = atoms.get_forces()[indices]
+        print('{0:>16} {1:>20}'.format('eps', 'max(abs(df))'))
+        for eps in np.logspace(-1, -8, 8):
+            fn = np.zeros((len(indices), 3))
+            for idx, i in enumerate(indices):
+                for j in range(3):
+                    fn[idx, j] = numeric_force(atoms, i, j, eps)
+            print('{0:16.12f} {1:20.12f}'.format(eps, abs(fn - f).max()))
+        
+        
+        print ( "Numerical forces = \n{0:s}".\
+               format(np.array_str(fn, precision=6, suppress_small=False)) )
+        print ( "Buckingham forces = \n{0:s}".\
+               format(np.array_str(f, precision=6, suppress_small=False)) )
+        if np.allclose(f, fn):
+            print("Force consistency test passed!")
+        else:
+            print("Force consistency test failed!")
 
 
 def cutoff_function(r, rc, ro):
