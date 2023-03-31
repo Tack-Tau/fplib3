@@ -1,5 +1,7 @@
 import numpy as np
-
+from Ewald import ewaldsum
+import ase.io
+from ase.atoms import Atoms
 from ase.neighborlist import neighbor_list
 from ase.calculators.calculator import Calculator, all_changes
 from ase.stress import full_3x3_to_voigt_6_stress
@@ -126,9 +128,10 @@ class Buckingham(Calculator):
 
     """
 
-    implemented_properties = ['energy', 'energies', 'forces', 'free_energy']
-    implemented_properties += ['stress', 'stresses']  # bulk properties
+    implemented_properties = ['energy', 'forces', 'free_energy']
+    implemented_properties += ['stress']  # bulk properties
     default_parameters = {
+        'ZZ': { 'Mg': 2, 'Al': 3, 'O': -2 },
         'A': np.array([1279.69, 1361.29, 9547.96]),
         'rho': np.array([0.2997, 0.3013, 0.2240]),
         'C': np.array([0.00, 0.00, 32.0]),
@@ -167,16 +170,42 @@ class Buckingham(Calculator):
           might have to be adjusted to avoid distorting the potential too much.
 
         """
-
+        
+        self._atoms = None
+        self.cell_file = 'POSCAR'
+        self.results = {}
+        self.restart()
+        if atoms is None :
+            atoms = ase.io.read(self.cell_file)
+        self.atoms = atoms
+        self.atoms_save = None
+        
         Calculator.__init__(self, atoms = atoms, **kwargs)
-
+        
         if self.parameters.rc is None:
             self.parameters.rc = 10.0
-
+        
         if self.parameters.ro is None:
             self.parameters.ro = 0.66 * self.parameters.rc
         
 
+    def clear_results(self):
+        self.results.clear()
+
+    def restart(self):
+        self._energy = None
+        self._forces = None
+        self._stress = None
+
+    def check_restart(self, atoms = None):
+        self.atoms = atoms
+        if (self.atoms_save and atoms == self.atoms_save):
+            return False
+        else:
+            self.atoms_save = atoms.copy()
+            self.restart()
+            return True
+    
     def calculate(
         self,
         atoms = None,
@@ -185,12 +214,22 @@ class Buckingham(Calculator):
     ):
         if properties is None:
             properties = self.implemented_properties
-
+        
+        check_atoms(atoms)
+        self.clear_results()
+        
         Calculator.calculate(self, atoms, properties, system_changes)
+        if atoms is None:
+            atoms = self.atoms
         
-        atoms = self.atoms
-        natoms = len(atoms)
+        self.results['energy'] = self.get_potential_energy(atoms)
+        self.results['free_energy'] = self.get_potential_energy(atoms)
+        self.results['forces'] = self.calculate_numerical_forces(atoms)
+        self.results['stress'] = self.calculate_numerical_stress(atoms)
         
+    def get_potential_energy(self, atoms = None, **kwargs):
+        
+        ZZ = self.parameters.ZZ
         A = self.parameters.A
         rho = self.parameters.rho
         C = self.parameters.C
@@ -198,124 +237,126 @@ class Buckingham(Calculator):
         ro = self.parameters.ro
         smooth = self.parameters.smooth
         
-        energies = np.zeros(natoms)
-        forces = np.zeros((natoms, 3))
-        stresses = np.zeros((natoms, 3, 3))
-        icount_start = 0
-        icount_end = 0
-        n_bin = 0
+        if self.check_restart(atoms) or self._energy is None:
+            natoms = len(atoms)
+            energies = np.zeros(natoms)
+            forces = np.zeros((natoms, 3))
+            stresses = np.zeros((natoms, 3, 3))
+            icount_start = 0
+            icount_end = 0
+            n_bin = 0
+
+            ind1, ind2, disp, cell_shift = \
+            neighbor_list('ijdS', atoms, rc)
+
+            n_bin_list = np.bincount(ind1)
+
+            A_AC, A_BC, A_CC  = A
+            rho_AC, rho_BC, rho_CC = rho
+            C_AC, C_BC, C_CC = C
+
+            for i_atom in range(natoms):
+                energy = 0.0
+                force = np.zeros(3)
+                stress = np.zeros((3,3))
+
+                AC_neighbors = []
+                BC_neighbors = []
+                CC_neighbors = []
+
+                AC_offsets = []
+                BC_offsets = []
+                CC_offsets = []
+
+                icount_start += n_bin
+                icount_end = icount_start + n_bin_list[i_atom]
+                n_bin = n_bin_list[i_atom]
+                i_neighbors = ind2[icount_start:icount_end]
+                i_offsets = cell_shift[icount_start:icount_end]
+                i_offsets = i_offsets.tolist()
+                # print("i_neighbors", i_neighbors)
+                # print("i_offsets", i_offsets)
+                for ii in range(n_bin_list[i_atom]):
+
+                    if atoms[i_atom].symbol == 'O' or atoms[i_neighbors[ii]].symbol == 'O':
+
+                        if atoms[i_atom].symbol == 'Mg' or atoms[i_neighbors[ii]].symbol == 'Mg':
+                            AC_neighbors.append(i_neighbors[ii])
+                            AC_offsets.append(i_offsets[ii])
+
+                        elif atoms[i_atom].symbol == 'Al' or atoms[i_neighbors[ii]].symbol == 'Al':
+                            BC_neighbors.append(i_neighbors[ii])
+                            BC_offsets.append(i_offsets[ii])
+
+                        elif atoms[i_atom].symbol == 'O' and atoms[i_neighbors[ii]].symbol == 'O':
+                            CC_neighbors.append(i_neighbors[ii])
+                            CC_offsets.append(i_offsets[ii])
+
+
+
+                AC_offsets = np.array(AC_offsets)
+                BC_offsets = np.array(BC_offsets)
+                CC_offsets = np.array(CC_offsets)
+
+
+                if len(AC_neighbors) > 0:
+                    e_AC, f_AC, s_AC = self.get_pairwise_efs( atoms = atoms,
+                                                              icenter = i_atom,
+                                                              neighbors = AC_neighbors,
+                                                              offsets = AC_offsets,
+                                                              A = A_AC,
+                                                              rho = rho_AC,
+                                                              C = C_AC,
+                                                              rc = rc,
+                                                              ro = ro )
+                    energy += e_AC
+                    force += f_AC
+                    stress += s_AC
+
+                if len(BC_neighbors) > 0:
+                    e_BC, f_BC, s_BC = self.get_pairwise_efs( atoms = atoms,
+                                                              icenter = i_atom,
+                                                              neighbors = BC_neighbors,
+                                                              offsets = BC_offsets,
+                                                              A = A_BC,
+                                                              rho = rho_BC,
+                                                              C = C_BC,
+                                                              rc = rc,
+                                                              ro = ro )
+                    energy += e_BC
+                    force += f_BC
+                    stress += s_BC
+
+                if len(CC_neighbors) > 0:
+                    e_CC, f_CC, s_CC = self.get_pairwise_efs( atoms = atoms,
+                                                              icenter = i_atom,
+                                                              neighbors = CC_neighbors,
+                                                              offsets = CC_offsets,
+                                                              A = A_CC,
+                                                              rho = rho_CC,
+                                                              C = C_CC,
+                                                              rc = rc,
+                                                              ro = ro )
+                    energy += e_CC
+                    force += f_CC
+                    stress += s_CC
+
+
+                energies[i_atom] += energy
+                forces[i_atom] += force
+                stresses[i_atom] += stress
+
+
+            # ZZ = { 'Mg': 2, 'Al': 3, 'O': -2 }
+            esum = ewaldsum(atoms, ZZ)
+            e_ewald = esum.get_ewaldsum()
+            self._energy = energies.sum() + e_ewald
         
-        ind1, ind2, disp, cell_shift = \
-        neighbor_list('ijdS', atoms, rc)
-        
-        n_bin_list = np.bincount(ind1)
-        
-        A_AC, A_BC, A_CC  = A
-        rho_AC, rho_BC, rho_CC = rho
-        C_AC, C_BC, C_CC = C
-        
-        for i_atom in range(natoms):
-            energy = 0.0
-            force = np.zeros(3)
-            stress = np.zeros((3,3))
-            
-            AC_neighbors = []
-            BC_neighbors = []
-            CC_neighbors = []
-            
-            AC_offsets = []
-            BC_offsets = []
-            CC_offsets = []
-            
-            icount_start += n_bin
-            icount_end = icount_start + n_bin_list[i_atom]
-            n_bin = n_bin_list[i_atom]
-            i_neighbors = ind2[icount_start:icount_end]
-            i_offsets = cell_shift[icount_start:icount_end]
-            i_offsets = i_offsets.tolist()
-            # print("i_neighbors", i_neighbors)
-            # print("i_offsets", i_offsets)
-            for ii in range(n_bin_list[i_atom]):
-                
-                if atoms[i_atom].symbol == 'O' or atoms[i_neighbors[ii]].symbol == 'O':
-                    
-                    if atoms[i_atom].symbol == 'Mg' or atoms[i_neighbors[ii]].symbol == 'Mg':
-                        AC_neighbors.append(i_neighbors[ii])
-                        AC_offsets.append(i_offsets[ii])
-                    
-                    elif atoms[i_atom].symbol == 'Al' or atoms[i_neighbors[ii]].symbol == 'Al':
-                        BC_neighbors.append(i_neighbors[ii])
-                        BC_offsets.append(i_offsets[ii])
-                    
-                    elif atoms[i_atom].symbol == 'O' and atoms[i_neighbors[ii]].symbol == 'O':
-                        CC_neighbors.append(i_neighbors[ii])
-                        CC_offsets.append(i_offsets[ii])
-                    
-                
-                    
-            AC_offsets = np.array(AC_offsets)
-            BC_offsets = np.array(BC_offsets)
-            CC_offsets = np.array(CC_offsets)
-            
-            
-            if len(AC_neighbors) > 0:
-                e_AC, f_AC, s_AC = self.get_pairwise_efs( icenter = i_atom,
-                                                          neighbors = AC_neighbors,
-                                                          offsets = AC_offsets,
-                                                          A = A_AC,
-                                                          rho = rho_AC,
-                                                          C = C_AC,
-                                                          rc = rc,
-                                                          ro = ro )
-                energy += e_AC
-                force += f_AC
-                stress += s_AC
-            
-            if len(BC_neighbors) > 0:
-                e_BC, f_BC, s_BC = self.get_pairwise_efs( icenter = i_atom,
-                                                          neighbors = BC_neighbors,
-                                                          offsets = BC_offsets,
-                                                          A = A_BC,
-                                                          rho = rho_BC,
-                                                          C = C_BC,
-                                                          rc = rc,
-                                                          ro = ro )
-                energy += e_BC
-                force += f_BC
-                stress += s_BC
-            
-            if len(CC_neighbors) > 0:
-                e_CC, f_CC, s_CC = self.get_pairwise_efs( icenter = i_atom,
-                                                          neighbors = CC_neighbors,
-                                                          offsets = CC_offsets,
-                                                          A = A_CC,
-                                                          rho = rho_CC,
-                                                          C = C_CC,
-                                                          rc = rc,
-                                                          ro = ro )
-                energy += e_CC
-                force += f_CC
-                stress += s_CC
-            
-            
-            energies[i_atom] += energy
-            forces[i_atom] += force
-            stresses[i_atom] += stress
-            
-        # no lattice, no stress
-        if self.atoms.cell.rank == 3:
-            stresses = full_3x3_to_voigt_6_stress(stresses)
-            self.results['stress'] = stresses.sum(axis=0) / self.atoms.get_volume()
-            self.results['stresses'] = stresses / self.atoms.get_volume()
-        
-        energy = energies.sum()
-        self.results['energy'] = energy
-        self.results['energies'] = energies
-        self.results['free_energy'] = energy
-        self.results['forces'] = forces
-        
+        return self._energy
+    
     def get_pairwise_efs(
         self,
+        atoms = None,
         icenter = None,
         neighbors = None,
         offsets = None,
@@ -327,9 +368,9 @@ class Buckingham(Calculator):
     ):
         
         smooth = self.parameters.smooth
-        positions = self.atoms.positions
-        cell = self.atoms.cell
-        symbols = list(self.atoms.symbols)
+        positions = atoms.positions
+        cell = atoms.cell
+        symbols = list(atoms.symbols)
         
         # pointing *towards* neighbours
         distance_vectors = positions[neighbors] - positions[icenter] + np.dot(offsets, cell)
@@ -430,3 +471,48 @@ def d_cutoff_function(r, rc, ro):
         np.where(r < rc, 6 * (rc - r) * (ro - r) / (rc - ro) ** 3, 0.0),
     )
 
+########################################################################################
+####################### Helper functions for the VASP calculator #######################
+########################################################################################
+
+def check_atoms(atoms: Atoms) -> None:
+    """Perform checks on the atoms object, to verify that
+    it can be run by VASP.
+    A CalculatorSetupError error is raised if the atoms are not supported.
+    """
+
+    # Loop through all check functions
+    for check in (check_atoms_type, check_cell, check_pbc):
+        check(atoms)
+
+
+def check_cell(atoms: Atoms) -> None:
+    """Check if there is a zero unit cell.
+    Raises CalculatorSetupError if the cell is wrong.
+    """
+    if atoms.cell.rank < 3:
+        raise CalculatorSetupError(
+            "The lattice vectors are zero! "
+            "This is the default value - please specify a "
+            "unit cell.")
+
+
+def check_pbc(atoms: Atoms) -> None:
+    """Check if any boundaries are not PBC, as VASP
+    cannot handle non-PBC.
+    Raises CalculatorSetupError.
+    """
+    if not atoms.pbc.all():
+        raise CalculatorSetupError(
+            "Vasp cannot handle non-periodic boundaries. "
+            "Please enable all PBC, e.g. atoms.pbc=True")
+
+
+def check_atoms_type(atoms: Atoms) -> None:
+    """Check that the passed atoms object is in fact an Atoms object.
+    Raises CalculatorSetupError.
+    """
+    if not isinstance(atoms, Atoms):
+        raise CalculatorSetupError(
+            ('Expected an Atoms object, '
+             'instead got object of type {}'.format(type(atoms))))
