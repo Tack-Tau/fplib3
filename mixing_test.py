@@ -102,6 +102,15 @@ print ("Buckingham_stress:\n", atoms.get_stress())
 
 
 
+calc1 = GULP(keywords = 'conp gradient stress_out',
+             library = 'MgAlO.lib')
+
+atoms.calc = calc1
+print ("GULP_energy:\n", atoms.get_potential_energy())
+print ("GULP_forces:\n", atoms.get_forces())
+print ("GULP_stress:\n", atoms.get_stress())
+
+
 from ase.calculators.lammpslib import LAMMPSlib
 
 cmds = ["mass 1 24.305",

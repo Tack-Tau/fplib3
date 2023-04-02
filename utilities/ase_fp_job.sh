@@ -15,6 +15,13 @@ export OMP_NUM_THREADS=1
 # module use /projects/community/modulefiles
 # module load intel/17.0.4 python/3.8.5-gc563
 
+# For GULP
+# module use /projects/community/modulefiles
+# module load intel/17.0.4 python/3.8.5-gc563
+# export GULP_LIB=$HOME/apps/gulp-4.4/Libraries
+# export GULP_DOC=$HOME/apps/gulp-4.4/Docs
+# export ASE_GULP_COMMAND="$HOME/bin/gulp < PREFIX.gin > PREFIX.got"
+
 # For LAMMPS
 # module load intel/17.0.4 python
 # export LAMMPS_COMMAND="mpirun -np 8 $HOME/.local/bin/lmp"
@@ -22,6 +29,7 @@ export OMP_NUM_THREADS=1
 # export LAMMPS_POTENTIALS="$HOME/apps/lammps-29Sep2021/potentials/"
 
 # For VASP
+# module load intel/17.0.4
 # export VASP_PP_PATH="/home/st962/apps/" 
 
 # For DFTB+
