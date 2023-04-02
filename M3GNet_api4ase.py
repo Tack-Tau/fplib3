@@ -69,7 +69,7 @@ class M3GNet_Calculator(Calculator):
     
     def set(self, **kwargs):
         """Override the set function, to test for changes in the
-        fingerprint Calculator.
+        M3GNet Calculator.
         """
         changed_parameters = {}
 
