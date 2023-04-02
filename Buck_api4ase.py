@@ -188,7 +188,38 @@ class Buckingham(Calculator):
         if self.parameters.ro is None:
             self.parameters.ro = 0.66 * self.parameters.rc
         
+    def set(self, **kwargs):
+        """Override the set function, to test for changes in the
+        Buckingham Calculator.
+        """
+        changed_parameters = {}
 
+        if 'label' in kwargs:
+            self.label = kwargs.pop('label')
+
+        if 'directory' in kwargs:
+            # str() call to deal with pathlib objects
+            self.directory = str(kwargs.pop('directory'))
+
+        if 'txt' in kwargs:
+            self.txt = kwargs.pop('txt')
+
+        if 'atoms' in kwargs:
+            atoms = kwargs.pop('atoms')
+            self.atoms = atoms  # Resets results
+
+        if 'command' in kwargs:
+            self.command = kwargs.pop('command')
+
+        changed_parameters.update(Calculator.set(self, **kwargs))
+        self.default_parameters.update(Calculator.set(self, **kwargs))
+        
+        if changed_parameters:
+            self.clear_results()  # We don't want to clear atoms
+        for key in kwargs:
+            self.default_parameters[key] = kwargs[key]
+            self.results.clear()
+    
     def clear_results(self):
         self.results.clear()
 
