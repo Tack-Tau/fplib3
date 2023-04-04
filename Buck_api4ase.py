@@ -268,120 +268,120 @@ class Buckingham(Calculator):
         ro = self.parameters.ro
         smooth = self.parameters.smooth
         
-        if self.check_restart(atoms) or self._energy is None:
-            natoms = len(atoms)
-            energies = np.zeros(natoms)
-            forces = np.zeros((natoms, 3))
-            stresses = np.zeros((natoms, 3, 3))
-            icount_start = 0
-            icount_end = 0
-            n_bin = 0
+        # if self.check_restart(atoms) or self._energy is None:
+        natoms = len(atoms)
+        energies = np.zeros(natoms)
+        forces = np.zeros((natoms, 3))
+        stresses = np.zeros((natoms, 3, 3))
+        icount_start = 0
+        icount_end = 0
+        n_bin = 0
 
-            ind1, ind2, disp, cell_shift = \
-            neighbor_list('ijdS', atoms, rc)
+        ind1, ind2, disp, cell_shift = \
+        neighbor_list('ijdS', atoms, rc)
 
-            n_bin_list = np.bincount(ind1)
+        n_bin_list = np.bincount(ind1)
 
-            A_AC, A_BC, A_CC  = A
-            rho_AC, rho_BC, rho_CC = rho
-            C_AC, C_BC, C_CC = C
+        A_AC, A_BC, A_CC  = A
+        rho_AC, rho_BC, rho_CC = rho
+        C_AC, C_BC, C_CC = C
 
-            for i_atom in range(natoms):
-                energy = 0.0
-                force = np.zeros(3)
-                stress = np.zeros((3,3))
+        for i_atom in range(natoms):
+            energy = 0.0
+            force = np.zeros(3)
+            stress = np.zeros((3,3))
 
-                AC_neighbors = []
-                BC_neighbors = []
-                CC_neighbors = []
+            AC_neighbors = []
+            BC_neighbors = []
+            CC_neighbors = []
 
-                AC_offsets = []
-                BC_offsets = []
-                CC_offsets = []
+            AC_offsets = []
+            BC_offsets = []
+            CC_offsets = []
 
-                icount_start += n_bin
-                icount_end = icount_start + n_bin_list[i_atom]
-                n_bin = n_bin_list[i_atom]
-                i_neighbors = ind2[icount_start:icount_end]
-                i_offsets = cell_shift[icount_start:icount_end]
-                i_offsets = i_offsets.tolist()
-                # print("i_neighbors", i_neighbors)
-                # print("i_offsets", i_offsets)
-                for ii in range(n_bin_list[i_atom]):
+            icount_start += n_bin
+            icount_end = icount_start + n_bin_list[i_atom]
+            n_bin = n_bin_list[i_atom]
+            i_neighbors = ind2[icount_start:icount_end]
+            i_offsets = cell_shift[icount_start:icount_end]
+            i_offsets = i_offsets.tolist()
+            # print("i_neighbors", i_neighbors)
+            # print("i_offsets", i_offsets)
+            for ii in range(n_bin_list[i_atom]):
 
-                    if atoms[i_atom].symbol == 'O' or atoms[i_neighbors[ii]].symbol == 'O':
+                if atoms[i_atom].symbol == 'O' or atoms[i_neighbors[ii]].symbol == 'O':
 
-                        if atoms[i_atom].symbol == 'Mg' or atoms[i_neighbors[ii]].symbol == 'Mg':
-                            AC_neighbors.append(i_neighbors[ii])
-                            AC_offsets.append(i_offsets[ii])
+                    if atoms[i_atom].symbol == 'Mg' or atoms[i_neighbors[ii]].symbol == 'Mg':
+                        AC_neighbors.append(i_neighbors[ii])
+                        AC_offsets.append(i_offsets[ii])
 
-                        elif atoms[i_atom].symbol == 'Al' or atoms[i_neighbors[ii]].symbol == 'Al':
-                            BC_neighbors.append(i_neighbors[ii])
-                            BC_offsets.append(i_offsets[ii])
+                    elif atoms[i_atom].symbol == 'Al' or atoms[i_neighbors[ii]].symbol == 'Al':
+                        BC_neighbors.append(i_neighbors[ii])
+                        BC_offsets.append(i_offsets[ii])
 
-                        elif atoms[i_atom].symbol == 'O' and atoms[i_neighbors[ii]].symbol == 'O':
-                            CC_neighbors.append(i_neighbors[ii])
-                            CC_offsets.append(i_offsets[ii])
-
-
-
-                AC_offsets = np.array(AC_offsets)
-                BC_offsets = np.array(BC_offsets)
-                CC_offsets = np.array(CC_offsets)
+                    elif atoms[i_atom].symbol == 'O' and atoms[i_neighbors[ii]].symbol == 'O':
+                        CC_neighbors.append(i_neighbors[ii])
+                        CC_offsets.append(i_offsets[ii])
 
 
-                if len(AC_neighbors) > 0:
-                    e_AC, f_AC, s_AC = self.get_pairwise_efs( atoms = atoms,
-                                                              icenter = i_atom,
-                                                              neighbors = AC_neighbors,
-                                                              offsets = AC_offsets,
-                                                              A = A_AC,
-                                                              rho = rho_AC,
-                                                              C = C_AC,
-                                                              rc = rc,
-                                                              ro = ro )
-                    energy += e_AC
-                    force += f_AC
-                    stress += s_AC
 
-                if len(BC_neighbors) > 0:
-                    e_BC, f_BC, s_BC = self.get_pairwise_efs( atoms = atoms,
-                                                              icenter = i_atom,
-                                                              neighbors = BC_neighbors,
-                                                              offsets = BC_offsets,
-                                                              A = A_BC,
-                                                              rho = rho_BC,
-                                                              C = C_BC,
-                                                              rc = rc,
-                                                              ro = ro )
-                    energy += e_BC
-                    force += f_BC
-                    stress += s_BC
-
-                if len(CC_neighbors) > 0:
-                    e_CC, f_CC, s_CC = self.get_pairwise_efs( atoms = atoms,
-                                                              icenter = i_atom,
-                                                              neighbors = CC_neighbors,
-                                                              offsets = CC_offsets,
-                                                              A = A_CC,
-                                                              rho = rho_CC,
-                                                              C = C_CC,
-                                                              rc = rc,
-                                                              ro = ro )
-                    energy += e_CC
-                    force += f_CC
-                    stress += s_CC
+            AC_offsets = np.array(AC_offsets)
+            BC_offsets = np.array(BC_offsets)
+            CC_offsets = np.array(CC_offsets)
 
 
-                energies[i_atom] += energy
-                forces[i_atom] += force
-                stresses[i_atom] += stress
+            if len(AC_neighbors) > 0:
+                e_AC, f_AC, s_AC = self.get_pairwise_efs( atoms = atoms,
+                                                          icenter = i_atom,
+                                                          neighbors = AC_neighbors,
+                                                          offsets = AC_offsets,
+                                                          A = A_AC,
+                                                          rho = rho_AC,
+                                                          C = C_AC,
+                                                          rc = rc,
+                                                          ro = ro )
+                energy += e_AC
+                force += f_AC
+                stress += s_AC
+
+            if len(BC_neighbors) > 0:
+                e_BC, f_BC, s_BC = self.get_pairwise_efs( atoms = atoms,
+                                                          icenter = i_atom,
+                                                          neighbors = BC_neighbors,
+                                                          offsets = BC_offsets,
+                                                          A = A_BC,
+                                                          rho = rho_BC,
+                                                          C = C_BC,
+                                                          rc = rc,
+                                                          ro = ro )
+                energy += e_BC
+                force += f_BC
+                stress += s_BC
+
+            if len(CC_neighbors) > 0:
+                e_CC, f_CC, s_CC = self.get_pairwise_efs( atoms = atoms,
+                                                          icenter = i_atom,
+                                                          neighbors = CC_neighbors,
+                                                          offsets = CC_offsets,
+                                                          A = A_CC,
+                                                          rho = rho_CC,
+                                                          C = C_CC,
+                                                          rc = rc,
+                                                          ro = ro )
+                energy += e_CC
+                force += f_CC
+                stress += s_CC
 
 
-            # ZZ = { 'Mg': 2, 'Al': 3, 'O': -2 }
-            esum = ewaldsum(atoms, ZZ)
-            e_ewald = esum.get_ewaldsum()
-            self._energy = energies.sum() + e_ewald
+            energies[i_atom] += energy
+            forces[i_atom] += force
+            stresses[i_atom] += stress
+
+
+        # ZZ = { 'Mg': 2, 'Al': 3, 'O': -2 }
+        esum = ewaldsum(atoms, ZZ)
+        e_ewald = esum.get_ewaldsum()
+        self._energy = energies.sum() + e_ewald
         
         return self._energy
     
