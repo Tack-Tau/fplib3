@@ -77,14 +77,15 @@ class LinearCombinationCalculator(Calculator):
                                                ({})'.format(self.implemented_properties))
 
         for w, calc in zip(self.weights, self.calcs):
-            if calc.calculation_required(atoms, properties):
-                calc.calculate(atoms, properties, system_changes)
+            if w > 0.0:
+                if calc.calculation_required(atoms, properties):
+                    calc.calculate(atoms, properties, system_changes)
 
-            for k in properties:
-                if k not in self.results:
-                    self.results[k] = w * calc.results[k]
-                else:
-                    self.results[k] += w * calc.results[k]
+                for k in properties:
+                    if k not in self.results:
+                        self.results[k] = w * calc.results[k]
+                    else:
+                        self.results[k] += w * calc.results[k]
 
     def reset(self):
         """Clear all previous results recursively from all fo the calculators."""
