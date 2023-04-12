@@ -58,11 +58,11 @@ traj = Trajectory(trajfile)
 atoms_final = traj[-1]
 ase.io.write('opt.vasp', atoms_final, direct = True, long_format=True, vasp5 = True)
 
-final_cell = atoms_final.get_cell()
-final_cell_par = atoms_final.cell.cellpar()
-final_structure = atoms_final.get_scaled_positions()
-final_energy_per_atom = float( atoms_final.get_potential_energy() / len(atoms_final) )
-final_stress = atoms_final.get_stress()
+final_cell = atoms.get_cell()
+final_cell_par = atoms.cell.cellpar()
+final_structure = atoms.get_scaled_positions()
+final_energy_per_atom = float( atoms.get_potential_energy() / len(atoms_final) )
+final_stress = atoms.get_stress()
 
 print("Relaxed lattice vectors are \n{0:s}".\
       format(np.array_str(final_cell, precision=6, suppress_small=False)))
