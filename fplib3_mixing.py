@@ -162,18 +162,36 @@ class MixedCalculator(LinearCombinationCalculator):
         self.iter = self.iter + 1
             
         if 'energy' in properties:
-            energy1 = self.calcs[0].get_property('energy', atoms)
-            energy2 = self.calcs[1].get_property('energy', atoms)
+            if self.weights[0] > 0.0:
+                energy1 = self.calcs[0].get_property('energy', atoms)
+            else:
+                energy1 = 0.0
+            if self.weights[1] > 0.0:
+                energy2 = self.calcs[1].get_property('energy', atoms)
+            else:
+                energy2 = 0.0
             self.results['energy_contributions'] = (energy1, energy2)
             
         if 'forces' in properties:
-            force1 = self.calcs[0].get_property('forces', atoms)
-            force2 = self.calcs[1].get_property('forces', atoms)
+            if self.weights[0] > 0.0:
+                force1 = self.calcs[0].get_property('forces', atoms)
+            else:
+                force1 = np.zeros((len(atoms), 3), dtype = float)
+            if self.weights[1] > 0.0:
+                force2 = self.calcs[1].get_property('forces', atoms)
+            else:
+                force2 = np.zeros((len(atoms), 3), dtype = float)
             self.results['force_contributions'] = (force1, force2)
             
         if 'stress' in properties:
-            stress1 = self.calcs[0].get_property('stress', atoms)
-            stress2 = self.calcs[1].get_property('stress', atoms)
+            if self.weights[0] > 0.0:
+                stress1 = self.calcs[0].get_property('stress', atoms)
+            else:
+                stress1 = np.zeros(6, dtype = float)
+            if self.weights[1] > 0.0:
+                stress2 = self.calcs[1].get_property('stress', atoms)
+            else:
+                stress2 = np.zeros(6, dtype = float)
             self.results['stress_contributions'] = (stress1, stress2)
         
 
