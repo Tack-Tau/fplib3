@@ -140,9 +140,10 @@ class MixedCalculator(LinearCombinationCalculator):
             self.weights[1] = 0.0
         else:
             if ((self.iter+1) % 3) != 0:
+                x_iter = ( 3 * (self.iter // 3) ) / (self.iter_max - 3)
+                # self.weights[0] = x_iter ** self.nonLinear_const
                 self.weights[0] = \
-                                (( 3 * (self.iter // 3) ) / (self.iter_max - 3)) \
-                                 ** self.nonLinear_const
+                                0.5*(np.sin(-np.pi*0.5 + np.pi*9*x_iter**2) + 1.0)
         # print("weights=", self.weights)
 
     def calculate(self, 
