@@ -1,25 +1,26 @@
 #!/usr/bin/env python
 import os
+import subprocess
 import numpy as np
 
 def OPT_2_CONTCAR(caldir):
     try:
-        os.system('cp ' + str(caldir) + '/opt.vasp ' + str(caldir) + '/CONTCAR ')
-    except:
-        os.system('bash traj2optvasp.sh')
-        os.system('cp ' + str(caldir) + '/opt.vasp ' + str(caldir) + '/CONTCAR ')
+        subprocess.run(["cp", caldir + "/opt.vasp", caldir + "/CONTCAR"], check = True, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        subprocess.run(["bash", "traj2optvasp.sh"], stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+        subprocess.run(["cp", caldir + "/opt.vasp", caldir + "/CONTCAR"], stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
 
 def write_OUTCAR(caldir):
-    natom = os.popen('''grep "Number of atoms:" ''' + caldir + '''/slurm-* | awk '{print $4 }' ''').read()
+    natom = os.popen('''grep "Number of atoms:" ''' + caldir + '''/log | awk '{print $4 }' ''').read()
     natom = int(natom)
     try:
-        fe_atom = os.popen('''grep -A1 "Final energy per atom is" ''' + caldir + '''/slurm-* | tail -1 | awk '{print $1 }' ''').read()
+        fe_atom = os.popen('''grep -A1 "Final energy per atom is" ''' + caldir + '''/log | tail -1 | awk '{print $1 }' ''').read()
         fe_atom = float(fe_atom)
-    energies = os.popen('''grep "FIRE:" ''' + caldir + '''/slurm-* | tail -1 | awk '{printf "%.6f", $4 }' ''').read()
     except:
         fe_atom = None
+    energies = os.popen('''grep "FIRE:" ''' + caldir + '''/log | tail -1 | awk '{printf "%.6f", $4 }' ''').read()
     energies = float(energies)
-    f_max = os.popen('''grep "FIRE:" ''' + caldir + '''/slurm-* | tail -1 | awk '{printf "%.4f", $5 }' ''').read()
+    f_max = os.popen('''grep "FIRE:" ''' + caldir + '''/log | tail -1 | awk '{printf "%.4f", $5 }' ''').read()
     f_max = float(f_max)
     eV_o_A3_2_kB = 6.24150912E-4
     stress_tmp = os.popen('''grep scalar_pressure ''' + caldir + '''/*_test.py | tail -1 | awk -F ',' '{print $2 }' | awk -F ')' '{print $1 }' | awk '{print $3}' ''').read()
