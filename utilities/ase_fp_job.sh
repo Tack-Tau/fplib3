@@ -30,7 +30,7 @@ export OMP_NUM_THREADS=1
 
 # For VASP
 # module load intel/17.0.4
-# export VASP_PP_PATH="/home/st962/apps/" 
+# export VASP_PP_PATH="/home/st962/apps/"
 
 # For DFTB+
 # module load intel/17.0.4 python/3.8.5-gc563 gcc/10.2.0-bz186 cmake/3.19.5-bz186
@@ -42,4 +42,6 @@ export OMP_NUM_THREADS=1
 # $HOME/apps/miniconda3/condabin/conda activate m3gnet
 # export TF_ENABLE_ONEDNN_OPTS=0
 
-python3 mixing_test.py
+python3 mixing_test.py > fp_log
+
+python3 ase_test.py > log

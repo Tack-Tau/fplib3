@@ -9,8 +9,8 @@ from ase.io.trajectory import Trajectory
 
 
 atoms = ase.io.read('.'+'/'+'POSCAR')
-ase.io.vasp.write_vasp('input.vasp', atoms, direct=True)
-trajfile = 'opt.traj'
+ase.io.vasp.write_vasp('input.vasp', atoms, direct = True)
+trajfile = 'fp_opt.traj'
 print("Number of atoms:", len(atoms))
 
 '''
@@ -197,7 +197,7 @@ print ("M3GNet_stress:\n", atoms.get_stress())
 
 
 
-#############################################################################
+###################################################################################################
 
 from fplib3_api4ase import fp_GD_Calculator
 from fplib3_mixing import MixedCalculator
@@ -253,7 +253,7 @@ opt.run(fmax = 1.e-3, steps = 5000)
 
 traj = Trajectory(trajfile)
 atoms_final = traj[-1]
-ase.io.write('opt.vasp', atoms_final, direct = True, long_format=True, vasp5 = True)
+ase.io.write('fp_opt.vasp', atoms_final, direct = True, long_format = True, vasp5 = True)
 
 final_cell = atoms.get_cell()
 final_cell_par = atoms.cell.cellpar()
