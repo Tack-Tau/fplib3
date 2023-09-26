@@ -204,14 +204,20 @@ print ("M3GNet_stress:\n", atoms.get_stress())
 
 
 from fplib3_api4ase import fp_GD_Calculator
+from functools import reduce
+
+chem_nums = list(atoms.numbers)
+znucl_list = reduce(lambda re, x: re+[x] if x not in re else re, chem_nums, [])
+ntyp = len(znucl_list)
+znucl = np.array(znucl_list, int)
 
 calc1 = fp_GD_Calculator(
             cutoff = 6.0,
             contract = False,
-            znucl = np.array([14], int),
+            znucl = znucl,
             lmax = 0,
             nx = 300,
-            ntyp = 1
+            ntyp = ntyp
             )
 atoms.calc = calc1
 
