@@ -23,15 +23,14 @@ max_count = max(fp_max, DFTB_max)
 for atoms in fp_traj:
     fp_count = fp_count + 1
     if fp_count <= max_count:
-        f_max = np.amax( np.absolute( atoms.get_forces() ) )
         calc = Dftb(atoms = atoms,
                      kpts = kgrid.calc_kpt_tuple(atoms),
                      label = 'dftb')
         atoms.calc = calc
         e = atoms.get_potential_energy() / len(atoms)
-        # f_max = np.amax( np.absolute( atoms.get_forces() ) )
+        f_max = np.amax( np.absolute( atoms.get_forces() ) )
         print(fp_count, e, f_max)
-    
+
 for atoms in DFTB_traj:
     DFTB_count = DFTB_count + 1
     if DFTB_count <= max_count:
