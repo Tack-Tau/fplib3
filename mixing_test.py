@@ -77,6 +77,7 @@ input_data = {
         'nosym': True },
     'electrons': {
         'electron_maxstep': 800,
+        'diagonalization': 'rmm-davidson',
         'mixing_mode': 'plain',
         'mixing_beta': 0.7,
         'conv_thr': 1.0e-6 }
