@@ -45,6 +45,55 @@ calc1 = Vasp( command = 'mpirun -n 16 /home/lz432/apps/vasp.6.3.0_intel/bin/vasp
               gamma = True
               )
 
+atoms.calc = calc1
+print ("VASP_energy:\n", atoms.get_potential_energy())
+print ("VASP_forces:\n", atoms.get_forces())
+print ("VASP_stress:\n", atoms.get_stress())
+
+---------------------------------------------------------------------------------------------------
+
+from ase.calculators.espresso import Espresso
+import kp_finder
+
+kpoints = kp_finder.get_kpoints(kgrid=0.07)
+
+pseudopotentials = {'Si': 'Si.pbe-n-rrkjus_psl.1.0.0.UPF'}
+path_to_pseudopotentials="$HOME/apps/SSSP_1.3.0_PBE_efficiency"
+command = 'mpirun -np 16 $HOME/apps/qe-7.2/bin pw.x -in PREFIX.pwi > PREFIX.pwo'
+
+input_data = {
+    'control': {
+        'calculation': 'scf',
+        'prefix': 'silicon',
+        'outdir': './',
+        'etot_conv_thr': 1.0e-5,
+        'forc_conv_thr': 1.0e-3,
+        'tstress': True,
+        'tprnfor': True },
+    'system': {
+        'ecutwfc': 50,
+        'ecutrho': 400,
+        'occupations': 'smearing',
+        'smearing': 'gauss',
+        'degauss': 0.004,
+        'nosym': True },
+    'electrons': {
+        'electron_maxstep': 800,
+        'mixing_mode': 'plain',
+        'mixing_beta': 0.7,
+        'conv_thr': 1.0e-6 }
+}
+
+calc1 = Espresso(input_data = input_data,
+                 pseudopotentials = pseudopotentials,
+                 kpts = tuple(kpoints))
+
+atoms.calc = calc1
+print ("QE_energy:\n", atoms.get_potential_energy())
+print ("QE_forces:\n", atoms.get_forces())
+print ("QE_stress:\n", atoms.get_stress())
+
+---------------------------------------------------------------------------------------------------
 
 from ase.calculators.lj import LennardJones
 calc1 = LennardJones()
@@ -103,7 +152,7 @@ print ("Buckingham_energy:\n", atoms.get_potential_energy())
 print ("Buckingham_forces:\n", atoms.get_forces())
 print ("Buckingham_stress:\n", atoms.get_stress())
 
-
+---------------------------------------------------------------------------------------------------
 
 from gulp_api4ase import GULP, Conditions
 
@@ -126,7 +175,7 @@ print ("GULP_energy:\n", atoms.get_potential_energy())
 print ("GULP_forces:\n", atoms.get_forces())
 print ("GULP_stress:\n", atoms.get_stress())
 
-
+---------------------------------------------------------------------------------------------------
 
 from ase.calculators.lammpslib import LAMMPSlib
 
@@ -169,7 +218,7 @@ print ("GAP_forces:\n", atoms.get_forces())
 print ("GAP_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
-
+---------------------------------------------------------------------------------------------------
 
 from ase.calculators.dftb import Dftb
 import kp_finder
@@ -184,7 +233,7 @@ print ("DFTB_forces:\n", atoms.get_forces())
 print ("DFTB_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
-
+---------------------------------------------------------------------------------------------------
 
 from m3gnet.models._base import Potential
 from m3gnet.models._m3gnet import M3GNet
