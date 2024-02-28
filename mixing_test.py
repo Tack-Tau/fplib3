@@ -48,7 +48,7 @@ print ("VASP_forces:\n", atoms.get_forces())
 print ("VASP_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
----------------------------------------------------------------------------------------------------
+##################################################################################################
 
 from ase.calculators.espresso import Espresso
 import kp_finder
@@ -93,7 +93,7 @@ print ("QE_forces:\n", atoms.get_forces())
 print ("QE_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
----------------------------------------------------------------------------------------------------
+##################################################################################################
 
 from ase.calculators.lj import LennardJones
 calc1 = LennardJones()
@@ -116,6 +116,21 @@ Reference:
 https://en.wikipedia.org/wiki/Lennard-Jones_potential
 https://en.wikipedia.org/wiki/Van_der_Waals_radius
 https://en.wikipedia.org/wiki/Covalent_radius
+##################################################################################################
+
+
+
+##################################################################################################
+# OpenKim support for emperical potential access
+from ase.calculators.kim.kim import KIM
+
+model = "SW_StillingerWeber_1985_Si__MO_405512056662_006"
+calc1 = KIM(model)
+atoms.calc = calc1
+
+print ("SW_energy:\n", atoms.get_potential_energy())
+print ("SW_forces:\n", atoms.get_forces())
+print ("SW_stress:\n", atoms.get_stress())
 ##################################################################################################
 '''
 
@@ -155,7 +170,7 @@ print ("Buckingham_forces:\n", atoms.get_forces())
 print ("Buckingham_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
----------------------------------------------------------------------------------------------------
+##################################################################################################
 
 from gulp_api4ase import GULP, Conditions
 
@@ -179,7 +194,7 @@ print ("GULP_forces:\n", atoms.get_forces())
 print ("GULP_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
----------------------------------------------------------------------------------------------------
+##################################################################################################
 
 from ase.calculators.lammpslib import LAMMPSlib
 
@@ -223,7 +238,7 @@ print ("GAP_forces:\n", atoms.get_forces())
 print ("GAP_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
----------------------------------------------------------------------------------------------------
+##################################################################################################
 
 from ase.calculators.dftb import Dftb
 import kp_finder
@@ -239,7 +254,7 @@ print ("DFTB_forces:\n", atoms.get_forces())
 print ("DFTB_stress:\n", atoms.get_stress())
 # fmax_1 = np.amax(np.absolute(atoms.get_forces()))
 
----------------------------------------------------------------------------------------------------
+##################################################################################################
 
 from m3gnet.models._base import Potential
 from m3gnet.models._m3gnet import M3GNet

@@ -56,6 +56,10 @@ export ASE_ESPRESSO_COMMAND="mpirun -np 16 $QE_dir/pw.x -in PREFIX.pwi > PREFIX.
 # $HOME/apps/miniconda3/condabin/conda activate m3gnet
 # export TF_ENABLE_ONEDNN_OPTS=0
 
+# For OpenKim API
+# source $HOME/.bashrc
+# $HOME/apps/miniconda3/condabin/conda activate kim-env
+
 # python3 mixing_test.py > fp_log
 
 python3 ase_test.py > log
