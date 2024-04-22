@@ -102,7 +102,7 @@ print ("fp_stress:\n", atoms.get_stress())
 # af = StrainFilter(atoms)
 af = UnitCellFilter(atoms, scalar_pressure = 0.0)
 
-############################## Relaxation method ##############################\
+############################## Relaxation method ##############################
 
 # opt = BFGS(af, maxstep = 1.e-1, trajectory = trajfile)
 opt = FIRE(af, maxstep = 1.e-1, trajectory = trajfile)
@@ -117,8 +117,7 @@ traj = Trajectory(trajfile)
 ase.io.write('opt.vasp', traj[-1], direct = True, long_format=True, vasp5 = True)
 ```
 ## Citation
-If you use our code for your research please kindly cite our paper: [Accelerating Structural Optimization through Fingerprinting Space Integration on the Potential Energy Surface](https://pubs.acs.org/doi/10.1021/acs.jpclett.4c00275)
-The portable BibTex style bibliography file are provided as following:
+If you use this Fingerprint Library (or modified version) for your research please kindly cite our paper:\
 ```
 @article{taoAcceleratingStructuralOptimization2024,
   title = {Accelerating {{Structural Optimization}} through {{Fingerprinting Space Integration}} on the {{Potential Energy Surface}}},
@@ -129,8 +128,37 @@ The portable BibTex style bibliography file are provided as following:
   volume = {15},
   number = {11},
   pages = {3185--3190},
-  publisher = {American Chemical Society},
   doi = {10.1021/acs.jpclett.4c00275},
-  abstract = {Structural optimization has been a crucial component in computational materials research, and structure predictions have relied heavily on this technique, in particular. In this study, we introduce a novel method that enhances the efficiency of local optimization by integrating extra fingerprint space into the optimization process. Our approach utilizes a mixed energy concept in the hyper potential energy surface (PES), combining real energy and a newly introduced fingerprint energy derived from the symmetry of the local atomic environment. This method strategically guides the optimization process toward high-symmetry, low-energy structures by leveraging the intrinsic symmetry of the atomic configurations. The effectiveness of our approach was demonstrated through structural optimizations of silicon, silicon carbide, and Lennard-Jones cluster systems. Our results show that the fingerprint space biasing technique significantly enhances the performance and probability of discovering energetically favorable, high-symmetry structures as compared to conventional optimizations. The proposed method is anticipated to streamline the search for new materials and facilitate the discovery of novel energetically favorable configurations.}
+  url = {https://pubs.acs.org/doi/10.1021/acs.jpclett.4c00275}
+}
+```
+If you use Fingerprint distance as a metric to measure crystal similarity please also cite the following paper:\
+```
+@article{zhuFingerprintBasedMetric2016,
+  title = {A Fingerprint Based Metric for Measuring Similarities of Crystalline Structures},
+  author = {Zhu, Li and Amsler, Maximilian and Fuhrer, Tobias and Schaefer, Bastian and Faraji, Somayeh and Rostami, Samare and Ghasemi, S. Alireza and Sadeghi, Ali and Grauzinyte, Migle and Wolverton, Chris and Goedecker, Stefan},
+  year = {2016},
+  month = jan,
+  journal = {The Journal of Chemical Physics},
+  volume = {144},
+  number = {3},
+  pages = {034203},
+  doi = {10.1063/1.4940026},
+  url = {https://doi.org/10.1063/1.4940026}
+}
+```
+If you use GOM Fingerprint as a descriptor for developing MLP and other machine-learning related research please also cite the following paper:\
+```
+@article{sadeghiMetricsMeasuringDistances2013,
+  title = {Metrics for Measuring Distances in Configuration Spaces},
+  author = {Sadeghi, Ali and Ghasemi, S. Alireza and Schaefer, Bastian and Mohr, Stephan and Lill, Markus A. and Goedecker, Stefan},
+  year = {2013},
+  month = nov,
+  journal = {The Journal of Chemical Physics},
+  volume = {139},
+  number = {18},
+  pages = {184118},
+  doi = {10.1063/1.4828704},
+  url = {https://pubs.aip.org/aip/jcp/article/317391}
 }
 ```
