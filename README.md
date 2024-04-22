@@ -117,10 +117,10 @@ traj = Trajectory(trajfile)
 ase.io.write('opt.vasp', traj[-1], direct = True, long_format=True, vasp5 = True)
 ```
 ## Citation
-If you use this Fingerprint Library (or modified version) for your research please kindly cite our paper:\
+If you use this Fingerprint Library (or modified version) for your research please kindly cite our paper:
 ```
 @article{taoAcceleratingStructuralOptimization2024,
-  title = {Accelerating {{Structural Optimization}} through {{Fingerprinting Space Integration}} on the {{Potential Energy Surface}}},
+  title = {Accelerating Structural Optimization through Fingerprinting Space Integration on the Potential Energy Surface},
   author = {Tao, Shuo and Shao, Xuecheng and Zhu, Li},
   year = {2024},
   month = mar,
@@ -132,7 +132,7 @@ If you use this Fingerprint Library (or modified version) for your research plea
   url = {https://pubs.acs.org/doi/10.1021/acs.jpclett.4c00275}
 }
 ```
-If you use Fingerprint distance as a metric to measure crystal similarity please also cite the following paper:\
+If you use Fingerprint distance as a metric to measure crystal similarity please also cite the following paper:
 ```
 @article{zhuFingerprintBasedMetric2016,
   title = {A Fingerprint Based Metric for Measuring Similarities of Crystalline Structures},
@@ -147,7 +147,7 @@ If you use Fingerprint distance as a metric to measure crystal similarity please
   url = {https://doi.org/10.1063/1.4940026}
 }
 ```
-If you use GOM Fingerprint as a descriptor for developing MLP and other machine-learning related research please also cite the following paper:\
+If you use GOM Fingerprint as a descriptor for developing MLP and other machine-learning related research please also cite the following paper:
 ```
 @article{sadeghiMetricsMeasuringDistances2013,
   title = {Metrics for Measuring Distances in Configuration Spaces},
